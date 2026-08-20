@@ -1,11 +1,11 @@
 # Banc Lima (multi-VM + Ceph)
 
 **Seul banc local**
-([ADR 0038](/cluster/docs/decisions/0038-lima-seul-banc-local/)) — 3 VMs +
+([ADR 0038](/nestor/docs/decisions/0038-lima-seul-banc-local/)) — 3 VMs +
 disques bruts + Rook/Ceph, sur des **VMs Lima**.
 
 Pourquoi Lima
-([ADR 0006](/cluster/docs/decisions/0006-matrice-de-versions-et-politique-de-bump/))
+([ADR 0006](/nestor/docs/decisions/0006-matrice-de-versions-et-politique-de-bump/))
 :
 
 - **kind est abandonné** : son image de nœud figeait Kubernetes en **1.31**
@@ -39,7 +39,7 @@ Pourquoi Lima
 ## Pré-requis poste
 
 Poste de contrôle = **macOS** (Apple Silicon) **ou Linux** ; Windows → **WSL2**
-([ADR 0100](/cluster/docs/decisions/0100-perimetre-os-poste-et-noeuds/)). Les
+([ADR 0100](/nestor/docs/decisions/0100-perimetre-os-poste-et-noeuds/)). Les
 commandes ci-dessous sont en `brew` (macOS) ; sur Linux, équivalents `apt` /
 binaires.
 
@@ -117,7 +117,7 @@ HARDENING_TAGS=audit,detection,smart WITH_HARDENING=1 bench/lima/run-phases.sh a
   complété y **append** une entrée datée (id, date ISO UTC, branche, commit,
   profil, topologie, arch, hôte, durées par phase). C'est la **preuve datée**
   qu'exploite le garde-fou de fraîcheur
-  ([ADR 0042](/cluster/docs/decisions/0042-fraicheur-preuves-banc/)) — la date
+  ([ADR 0042](/nestor/docs/decisions/0042-fraicheur-preuves-banc/)) — la date
   vit dans le **contenu** (le checkout CI ne préserve pas le mtime).
   L'auto-consignation bash (`metrology.sh`) a été **retirée** (ADR 0101) ;
   l'append Python reste à câbler (STUB `record`), donc aujourd'hui l'entrée est
@@ -133,7 +133,7 @@ HARDENING_TAGS=audit,detection,smart WITH_HARDENING=1 bench/lima/run-phases.sh a
   les rôles/manifestes/versions). Tout changement du socle invalide le cache.
   **`NO_CACHE=1` force le rebuild from-scratch** — c'est lui qui produit la
   **preuve**
-  ([ADR 0034](/cluster/docs/decisions/0034-validation-e2e-from-scratch/)), le
+  ([ADR 0034](/nestor/docs/decisions/0034-validation-e2e-from-scratch/)), le
   cache n'étant qu'un accélérateur d'itération.
 - **Fraîcheur** : `nestor artifact check-freshness` (porté en Python, ADR 0101 —
   ex `check-freshness.sh` ; seuil `--seuil-jours`, défaut 7) lit la date du
@@ -174,7 +174,7 @@ kubeconfig banc) et installe la lib Python `kubernetes` en pré-tâche.
 | Marquez      | `marquez` ET `marquez-web` Ready (migration Flyway)             |
 | **lineage**  | un run Dagster réel → événement OpenLineage ingéré par Marquez  |
 
-> Consigner le run dans [`RESULTS.md`](/cluster/bench/lima/RESULTS/) (honnêteté
+> Consigner le run dans [`RESULTS.md`](/nestor/bench/lima/RESULTS/) (honnêteté
 > des Runs, ADR 0023) — succès **et** drifts éventuels.
 
 Chaque phase est **gated** (s'arrête si le critère n'est pas atteint) et
@@ -201,7 +201,7 @@ KUBECONFIG=.kubeconfigs/banc.config kubectl -n rook-ceph exec deploy/rook-ceph-t
 - **Couverture** : up → bootstrap → stockage (simple par défaut, Ceph en
   option). Les workloads applicatifs (WordPress/datalake) et l'etcd-backup ne
   sont pas encore portés sur ce banc (cf.
-  [matrice du catalogue](/cluster/docs/architecture/matrice-catalogue/)).
+  [matrice du catalogue](/nestor/docs/architecture/matrice-catalogue/)).
 - **`local-path`** : stockage `WaitForFirstConsumer` sur disque local du nœud
   (pas de réplication, pas de bascule) — suffisant pour des PVC simples, mais le
   stockage **résilient** (réplication ×3, RWX, objet S3) se valide en mode Ceph.
@@ -216,19 +216,19 @@ bench/lima/run-phases.sh down   # détruit ce banc (VMs + disques nommés)
 
 Déroulé réel du banc (de bout en bout : up → bootstrap → ceph `HEALTH_OK` → sc
 PVC Bound) et drifts rencontrés (honnêteté des Runs, ADR 0023) :
-[`RESULTS.md`](/cluster/bench/lima/RESULTS/).
+[`RESULTS.md`](/nestor/bench/lima/RESULTS/).
 
 ## Architecture interne
 
-- [`run-phases.sh`](https://github.com/univ-lehavre/cluster/blob/main/bench/lima/run-phases.sh)
+- [`run-phases.sh`](https://github.com/chasset/nestor/blob/main/bench/lima/run-phases.sh)
   : orchestrateur, table de nœuds + phases gated.
-- [`lib.sh`](https://github.com/univ-lehavre/cluster/blob/main/bench/lima/lib.sh)
-  : bibliothèque d'orchestration Lima ↔ Ansible (`lima_disk_create`,
+- [`lib.sh`](https://github.com/chasset/nestor/blob/main/bench/lima/lib.sh) :
+  bibliothèque d'orchestration Lima ↔ Ansible (`lima_disk_create`,
   `lima_render_node`, `lima_start_node`, `write_inventory`,
   `bootstrap_node_sequence`, `run_cni`, `fetch_kubeconfig_node`). **Sourcée
   aussi par les spikes** qui montent des clusters Lima (ex.
-  [`../spikes/clustermesh-latency/`](/cluster/bench/spikes/clustermesh-latency/))
+  [`../spikes/clustermesh-latency/`](/nestor/bench/spikes/clustermesh-latency/))
   — source unique, pas de duplication.
-- [`profiles/node.yaml.tmpl`](https://github.com/univ-lehavre/cluster/blob/main/bench/lima/profiles/node.yaml.tmpl)
+- [`profiles/node.yaml.tmpl`](https://github.com/chasset/nestor/blob/main/bench/lima/profiles/node.yaml.tmpl)
   : template de VM Lima (Debian 13, user-v2, provision noyau K8s), rendu par
   `lima_render_node`.

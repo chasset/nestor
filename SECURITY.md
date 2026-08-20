@@ -2,8 +2,8 @@
 
 > 🇬🇧 This policy is in French, but **vulnerability reports in English are
 > welcome**. Use GitHub Private Vulnerability Reporting
-> (<https://github.com/univ-lehavre/cluster/security/advisories/new>) or e-mail
-> the maintainer (address below) — in either language.
+> (<https://github.com/chasset/nestor/security/advisories/new>) or e-mail the
+> maintainer (address below) — in either language.
 
 ## Signaler une vulnérabilité
 
@@ -11,10 +11,10 @@ Merci de **ne pas** ouvrir d'issue publique pour une faille de sécurité.
 
 Privilégier le **Private Vulnerability Reporting** de GitHub : **Security →
 Report a vulnerability** sur
-<https://github.com/univ-lehavre/cluster/security/advisories/new>.
+<https://github.com/chasset/nestor/security/advisories/new>.
 
 À défaut, contacter directement le mainteneur :
-**pierre-olivier.chasset@univ-lehavre.fr**.
+**1488688+chasset@users.noreply.github.com**.
 
 Merci d'inclure, si possible : description, impact estimé, étapes de
 reproduction, et version/commit concerné. Réponse visée sous **7 jours ouvrés**
@@ -38,26 +38,26 @@ cluster **mono-tenant de recherche sur réseau privé isolé** — ce ne sont pa
 failles :
 
 - Registry interne en HTTP sans authentification
-  ([ADR 0011](/cluster/docs/decisions/0011-registry-http-sans-auth/)).
+  ([ADR 0011](/nestor/docs/decisions/0011-registry-http-sans-auth/)).
 - RStudio sans authentification
-  ([ADR 0012](/cluster/docs/decisions/0012-rstudio-disable-auth/)).
+  ([ADR 0012](/nestor/docs/decisions/0012-rstudio-disable-auth/)).
 - Pas de chiffrement Ceph in-transit/at-rest
-  ([ADR 0003](/cluster/docs/decisions/0003-pas-de-chiffrement-ceph-tailscale/)).
+  ([ADR 0003](/nestor/docs/decisions/0003-pas-de-chiffrement-ceph-tailscale/)).
 - Clé de chiffrement etcd stockée en clair sur le disque du control plane
   (`/etc/kubernetes/enc/`, 0600 root), pas de KMS externe — les Secrets sont
   bien chiffrés at-rest et l'audit-policy API est posée (depuis le 2026-06-02,
   ces deux points ne sont plus une dette), mais un accès disque au nœud control
   plane reste hors de portée de cette protection
-  ([ADR 0014](/cluster/docs/decisions/0014-durcissement-kubeadm-init/)).
+  ([ADR 0014](/nestor/docs/decisions/0014-durcissement-kubeadm-init/)).
 
 Ces choix reposent sur l'**isolation réseau**. Un signalement utile est donc
 plutôt : « telle hypothèse d'isolation est fausse dans tel cas » ou « tel point
-n'est pas couvert par un ADR ». Voir [SAFEGUARDS.md](/cluster/SAFEGUARDS/) pour
-les contrôles en place et [docs/decisions/](/cluster/docs/decisions/) pour les
+n'est pas couvert par un ADR ». Voir [SAFEGUARDS.md](/nestor/SAFEGUARDS/) pour
+les contrôles en place et [docs/decisions/](/nestor/docs/decisions/) pour les
 décisions.
 
 ## Versions supportées
 
 Seule la **dernière version publiée** (cf.
-[releases](https://github.com/univ-lehavre/cluster/releases)) reçoit des
-correctifs. Les versions antérieures ne sont pas maintenues.
+[releases](https://github.com/chasset/nestor/releases)) reçoit des correctifs.
+Les versions antérieures ne sont pas maintenues.

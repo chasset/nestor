@@ -1,7 +1,7 @@
 # Métadonnées de citation — format Citation File Format (https://citation-file-format.github.io/).
 # GitHub affiche un bouton « Cite this repository » à partir de ce fichier.
 cff-version: 1.2.0
-title: 'cluster — plateforme Kubernetes hyperconvergée (Debian, Cilium, Rook-Ceph)'
+title: 'nestor — plateforme Kubernetes hyperconvergée (Debian, Cilium, Rook-Ceph)'
 message: >-
   Si vous utilisez ce dépôt dans un travail de recherche, merci de le citer
   à l'aide des métadonnées ci-dessous.
@@ -9,10 +9,10 @@ type: software
 authors:
   - given-names: Pierre-Olivier
     family-names: Chasset
-    email: pierre-olivier.chasset@univ-lehavre.fr
+    email: 1488688+chasset@users.noreply.github.com
     affiliation: Université Le Havre Normandie
     orcid: 'https://orcid.org/0000-0002-0177-0387'
-repository-code: 'https://github.com/univ-lehavre/cluster'
+repository-code: 'https://github.com/chasset/nestor'
 abstract: >-
   Infrastructure-as-Code d'une plateforme Kubernetes hyperconvergée de
   recherche : bootstrap Ansible sur Debian, CNI Cilium, stockage distribué

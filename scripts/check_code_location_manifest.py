@@ -19,15 +19,15 @@ dépendances. Un contrat déclaré + validé à l'instanciation échoue BRUYAMME
 qu'une version ou une dépendance manque (ADR 0094 §3, Conséquences).
 
 Périmètre de vérification (le piège du check naïf) : ce qui est vérifiable
-STATIQUEMENT depuis le seul dépôt cluster est BLOQUANT ; ce qui relève d'atlas
+STATIQUEMENT depuis le seul dépôt nestor est BLOQUANT ; ce qui relève d'atlas
 (migration `.sql`, code d'une autre code-location) ou du runtime (capacité réelle
 du cluster) est WARNING, jamais un faux-rouge.
 
   BLOQUANT (exit 1) — vérifiable depuis le manifeste + `contract/*.example.yaml`
-  + manifestes versionnés cluster SEULS, et un écart = un bug réel :
+  + manifestes versionnés nestor SEULS, et un écart = un bug réel :
     • schéma : champ requis manquant, mauvais type (`ready` non booléen,
       `revision` vide/absente, `codeLocation` absent) ;
-    • `contractVersion` absente ou INCONNUE du contrat cluster courant
+    • `contractVersion` absente ou INCONNUE du contrat nestor courant
       (contract/*.example.yaml : `contract_version`) ;
     • `dependsOn.database` : base logique non déclarée par le contrat
       (postgres_roles) ni par le Cluster CNPG versionné ;
@@ -36,13 +36,13 @@ du cluster) est WARNING, jamais un faux-rouge.
     • `dependsOn.buckets[].storageClass` : StorageClass absente du dépôt ;
     • `resources` : valeur de quantité Kubernetes malformée (cpu/memory/disk).
 
-  WARNING (n'échoue pas) — non vérifiable de façon fiable depuis le code cluster
+  WARNING (n'échoue pas) — non vérifiable de façon fiable depuis le code nestor
   seul, ou légitimement dynamique :
     • `dependsOn.codeLocations` : dépendance INTER-APP (le code de l'autre
-      code-location vit dans atlas, hors dépôt cluster) — cluster l'ORDONNE au
+      code-location vit dans atlas, hors dépôt nestor) — nestor l'ORDONNE au
       déploiement (sync-waves), pas vérifiable ici ;
     • `dependsOn.migrations` : le `.sql` est FOURNI par atlas (schéma métier),
-      absent du dépôt cluster par conception (ADR 0094 §5) ;
+      absent du dépôt nestor par conception (ADR 0094 §5) ;
     • `ready: false` : atlas n'atteste pas encore — cluster ne déploiera pas,
       mais ce n'est pas une erreur de manifeste ;
     • capacité (`resources`/`buckets[].size`) : confrontée à la capacité RÉELLE
@@ -229,13 +229,13 @@ def check_dependencies(
                 )
             )
 
-    # WARNING : dépendances non vérifiables depuis le seul dépôt cluster.
+    # WARNING : dépendances non vérifiables depuis le seul dépôt nestor.
     for other in depends.get("codeLocations", []) or []:
         findings.append(
             Finding(
                 WARNING,
                 f"manifeste '{cl}': dépend de la code-location '{other}' — code hors dépôt "
-                "cluster ; cluster l'ORDONNE au déploiement (sync-waves Argo CD, ADR 0094 §3), "
+                "nestor ; nestor l'ORDONNE au déploiement (sync-waves Argo CD, ADR 0094 §3), "
                 "non vérifiable statiquement ici.",
             )
         )
@@ -244,7 +244,7 @@ def check_dependencies(
             Finding(
                 WARNING,
                 f"manifeste '{cl}': migration '{migration}' FOURNIE par atlas (schéma métier, "
-                "ADR 0094 §5) — absente du dépôt cluster par conception ; appliquée en hook "
+                "ADR 0094 §5) — absente du dépôt nestor par conception ; appliquée en hook "
                 "PreSync, non vérifiable ici.",
             )
         )

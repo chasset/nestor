@@ -6,7 +6,7 @@ surprises — du commit au déploiement.
 ## Hooks git (poste de développement)
 
 Posés par [Lefthook](https://lefthook.dev/) au premier `pnpm install` (config :
-[`lefthook.yml`](https://github.com/univ-lehavre/cluster/blob/main/lefthook.yml)).
+[`lefthook.yml`](https://github.com/chasset/nestor/blob/main/lefthook.yml)).
 
 ### `pre-commit` — vérifie ce qui est sur le point d'être commité
 
@@ -40,7 +40,7 @@ Posés par [Lefthook](https://lefthook.dev/) au premier `pnpm install` (config :
 
 ## CI GitHub Actions (chaque PR + chaque push `main`)
 
-[`.github/workflows/ci.yml`](https://github.com/univ-lehavre/cluster/blob/main/.github/workflows/ci.yml)
+[`.github/workflows/ci.yml`](https://github.com/chasset/nestor/blob/main/.github/workflows/ci.yml)
 — **jobs en parallèle** :
 
 | Job            | Vérifie                                           |
@@ -82,17 +82,17 @@ Configurée côté GitHub (non versionnable, documentée ici pour mémoire) :
   ci-dessous : aucun second relecteur disponible).
 
 > Vérifier / réappliquer :
-> `gh api repos/univ-lehavre/cluster/branches/main/protection`.
+> `gh api repos/chasset/nestor/branches/main/protection`.
 
-[`.github/workflows/docs.yml`](https://github.com/univ-lehavre/cluster/blob/main/.github/workflows/docs.yml)
+[`.github/workflows/docs.yml`](https://github.com/chasset/nestor/blob/main/.github/workflows/docs.yml)
 :
 
 - À chaque PR : `pnpm docs:build` (validation — pas de dead link, base path
   correct).
 - À chaque push sur `main` : build + déploiement sur
-  [GitHub Pages](https://univ-lehavre.github.io/cluster/).
+  [GitHub Pages](https://chasset.github.io/nestor/).
 
-[`.github/workflows/release.yml`](https://github.com/univ-lehavre/cluster/blob/main/.github/workflows/release.yml)
+[`.github/workflows/release.yml`](https://github.com/chasset/nestor/blob/main/.github/workflows/release.yml)
 :
 
 - À chaque push sur `main` :
@@ -101,21 +101,18 @@ Configurée côté GitHub (non versionnable, documentée ici pour mémoire) :
   Conventional Commits. **L'auto-merge est activé sur cette PR dès sa création**
   : GitHub la fusionne automatiquement quand les checks requis sont verts, ce
   qui pousse le tag `vX.Y.Z` et publie une
-  [GitHub Release](https://github.com/univ-lehavre/cluster/releases). →
-  Publication **100 % automatique** ; aucune version flottante en main, chaque
-  tag lié à un set de commits validé par la CI.
+  [GitHub Release](https://github.com/chasset/nestor/releases). → Publication
+  **100 % automatique** ; aucune version flottante en main, chaque tag lié à un
+  set de commits validé par la CI.
 
-> ✅ **Token : PAT fine-grained (`RELEASE_PLEASE_TOKEN`).** L'organisation
-> `univ-lehavre` verrouille le `GITHUB_TOKEN` par défaut en lecture seule
-> (`default_workflow_permissions` ne peut pas passer à `write` au niveau repo →
-> `409 Write permissions for workflows are disabled by the organization`). Avec
-> ce token bridé, release-please ouvrait la PR mais ne pouvait ni pousser le tag
-> ni publier la release. On utilise donc un **PAT fine-grained** (scope = ce
-> repo, `Contents: RW` + `Pull requests: RW`) déposé en secret
-> `RELEASE_PLEASE_TOKEN` et injecté via `with: token:` dans `release.yml`. Il
-> débloque tag + release **et** redéclenche la CI sur la PR de release — sans
-> quoi l'auto-merge resterait en attente de checks qui ne tournent jamais.
-> Réglage repo associé : `allow_auto_merge=true`.
+> ✅ **Token : PAT fine-grained (`RELEASE_PLEASE_TOKEN`).** Le `GITHUB_TOKEN` ne
+> **redéclenche pas les workflows** : sans ce PAT, la CI ne tournerait pas sur
+> la PR de release et l'auto-merge resterait bloqué en attente de checks qui ne
+> tournent jamais. On utilise donc un **PAT fine-grained** (scope = ce repo,
+> `Contents: RW` + `Pull requests: RW`) déposé en secret `RELEASE_PLEASE_TOKEN`
+> et injecté via `with: token:` dans `release.yml`. Il débloque tag + release
+> **et** redéclenche la CI sur la PR de release — comme un push normal. Réglage
+> repo associé : `allow_auto_merge=true`.
 >
 > ⚠️ **Rotation** : un PAT expire. À renouveler avant échéance (même scope, même
 > nom de secret), sinon les releases se rebloquent silencieusement.
@@ -134,28 +131,28 @@ Configurée côté GitHub (non versionnable, documentée ici pour mémoire) :
 >     | awk '/^## \[X\.Y\.Z\]/{f=1} /^## \[<version-précédente>\]/{f=0} f')
 > # 2. Supprimer la branche release-please parasite (via API : le hook pre-push
 > #    no-direct-push-to-main bloque un `git push --delete`)
-> gh api -X DELETE repos/univ-lehavre/cluster/git/refs/heads/release-please--branches--main--components--cluster
+> gh api -X DELETE repos/chasset/nestor/git/refs/heads/release-please--branches--main--components--nestor
 > # 3. Vérifier qu'un run propre ne repropose plus rien
 > gh workflow run release.yml && gh run list --workflow release.yml -L 1
 > ```
 
 ## Banc d'essai Lima
 
-[`bench/`](/cluster/bench/) — valider sur **vrai Debian 13** avant de toucher
-les serveurs.
+[`bench/`](/nestor/bench/) — valider sur **vrai Debian 13** avant de toucher les
+serveurs.
 
-### [`bench/lima/`](/cluster/bench/lima/) — banc multi-nœuds (ADR 0038, seul banc local)
+### [`bench/lima/`](/nestor/bench/lima/) — banc multi-nœuds (ADR 0038, seul banc local)
 
 3 VMs Lima Debian 13 arm64 (réseau user-v2 `192.168.104.0/24`) + disques bruts
 pour Ceph. Orchestré par
-[`bench/lima/run-phases.sh`](https://github.com/univ-lehavre/cluster/blob/main/bench/lima/run-phases.sh)
+[`bench/lima/run-phases.sh`](https://github.com/chasset/nestor/blob/main/bench/lima/run-phases.sh)
 à **gates** : `up → bootstrap → ceph → sc → datalake → dataops → monitoring`.
 Deux profils — léger (local-path/SeaweedFS, ~11 min) et Ceph (RGW, ~30 min).
 Couvre la chaîne complète Phase 1-5 + DataOps.
 
 **Toujours valider sur le banc avant la prod** — c'est le seul endroit où le
 multi-VM et les disques Ceph sont exercés (validation = run e2e from-scratch,
-[ADR 0034](/cluster/docs/decisions/0034-validation-e2e-from-scratch/)).
+[ADR 0034](/nestor/docs/decisions/0034-validation-e2e-from-scratch/)).
 
 #### Isolation banc ↔ prod
 
@@ -166,7 +163,7 @@ serveurs.
 
 ## Vérifications en place sur les nœuds
 
-### Détection de drift — [`bootstrap/state.sh`](https://github.com/univ-lehavre/cluster/blob/main/bootstrap/state.sh)
+### Détection de drift — [`bootstrap/state.sh`](https://github.com/chasset/nestor/blob/main/bootstrap/state.sh)
 
 7 couches d'observation (SSH + kubectl) :
 
@@ -185,56 +182,56 @@ serveurs.
 Sortie : `N ok / N drift / N non applicable` + remède pour le **1er** drift
 détecté.
 
-### Visibilité du durcissement — [`bootstrap/security/report.sh`](https://github.com/univ-lehavre/cluster/blob/main/bootstrap/security/report.sh)
+### Visibilité du durcissement — [`bootstrap/security/report.sh`](https://github.com/chasset/nestor/blob/main/bootstrap/security/report.sh)
 
 Tableau de bord lecture-seule par hôte : services actifs, `sshd -T`, dernier
 `unattended-upgrades.log`, alias root, IPs bannies par fail2ban, règles auditd,
 état UFW, expiration mot de passe. Le hardening est **100 % opt-in**
-([`bootstrap/security/IMPLICATIONS.md`](/cluster/bootstrap/security/IMPLICATIONS/))
+([`bootstrap/security/IMPLICATIONS.md`](/nestor/bootstrap/security/IMPLICATIONS/))
 — chaque couche s'active explicitement.
 
-### Audit-log par nœud — rôle [`audit-log`](https://github.com/univ-lehavre/cluster/blob/main/bootstrap/roles/audit-log)
+### Audit-log par nœud — rôle [`audit-log`](https://github.com/chasset/nestor/blob/main/bootstrap/roles/audit-log)
 
 Chaque playbook bootstrap appose une ligne dans `/var/log/cluster-bootstrap.log`
 du nœud cible : timestamp UTC, nom du playbook, opérateur `$USER@hostname` côté
 contrôle. Lu par la couche 0 de `state.sh` pour corréler "ce qui a été appliqué"
 et "ce qui est observé".
 
-### Sauvegarde etcd — rôle [`etcd-backup`](https://github.com/univ-lehavre/cluster/blob/main/bootstrap/roles/etcd-backup)
+### Sauvegarde etcd — rôle [`etcd-backup`](https://github.com/chasset/nestor/blob/main/bootstrap/roles/etcd-backup)
 
 Timer systemd horaire qui exécute `etcdctl snapshot save` ; rétention 24
 snapshots (1 jour glissant). Procédure de restauration documentée dans
-[`bootstrap/RUNBOOK.md`](/cluster/bootstrap/RUNBOOK/).
+[`bootstrap/RUNBOOK.md`](/nestor/bootstrap/RUNBOOK/).
 
-### Rollback du bootstrap — [`bootstrap/rollback.yaml`](https://github.com/univ-lehavre/cluster/blob/main/bootstrap/rollback.yaml)
+### Rollback du bootstrap — [`bootstrap/rollback.yaml`](https://github.com/chasset/nestor/blob/main/bootstrap/rollback.yaml)
 
 Playbook qui ramène un nœud à un état "Debian 13 + first-access" via
 `kubeadm reset + apt purge + cleanup configs`. Confirmation obligatoire via
 `-e confirm=yes`. Hors périmètre : disques Ceph (cf.
-[`storage/ceph/cleanup.sh`](https://github.com/univ-lehavre/cluster/blob/main/storage/ceph/cleanup.sh)),
+[`storage/ceph/cleanup.sh`](https://github.com/chasset/nestor/blob/main/storage/ceph/cleanup.sh)),
 partitionnement.
 
-### Idempotence stricte — [`bootstrap/first-access.sh`](https://github.com/univ-lehavre/cluster/blob/main/bootstrap/first-access.sh)
+### Idempotence stricte — [`bootstrap/first-access.sh`](https://github.com/chasset/nestor/blob/main/bootstrap/first-access.sh)
 
 Dépose la clé SSH, configure `sudo NOPASSWD`, pose le drop-in sshd hardening.
 Strictement idempotent : un 2ᵉ run ne change rien si l'état est déjà conforme
 (compare avec `cat` avant `install`).
 
-## Décisions tracées — [`docs/decisions/`](/cluster/docs/decisions/)
+## Décisions tracées — [`docs/decisions/`](/nestor/docs/decisions/)
 
 Les ADR (Architecture Decision Records) au format _Contexte / Décision / Statut
 / Conséquences_. Couvrent les choix architecturaux (réplication ×3, control
 plane unique, hyperconvergence, EC 2+1 datalake) et les compromis sécurité (HTTP
 sans auth, dashboard cluster-admin, RStudio sans login). Voir
-[index ADR](/cluster/docs/decisions/).
+[index ADR](/nestor/docs/decisions/).
 
 ## Phasage gated banc → prod
 
 L'ordre de déploiement (canari `cp1` → workers → stockage cluster-wide) et les
 gates par étape sont décrits dans
-[`bootstrap/RUNBOOK.md` § Ordre de déploiement](/cluster/bootstrap/RUNBOOK/) ;
+[`bootstrap/RUNBOOK.md` § Ordre de déploiement](/nestor/bootstrap/RUNBOOK/) ;
 **tout changement de cette nature doit passer par le banc
-([`bench/`](/cluster/bench/)) avant la prod**. Le _pourquoi_ de chaque choix
-structurant est tracé dans les [ADR](/cluster/docs/decisions/). Le reste-à-faire
+([`bench/`](/nestor/bench/)) avant la prod**. Le _pourquoi_ de chaque choix
+structurant est tracé dans les [ADR](/nestor/docs/decisions/). Le reste-à-faire
 priorisé vit dans
-[`docs/audit/2026-05-29/12-plan-action.md`](/cluster/docs/audit/2026-05-29/12-plan-action/).
+[`docs/audit/2026-05-29/12-plan-action.md`](/nestor/docs/audit/2026-05-29/12-plan-action/).

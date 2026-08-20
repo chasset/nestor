@@ -226,7 +226,7 @@ jobs:
 
   # NB : la validation des liens internes de la doc est désormais assurée par
   # `starlight-links-validator` (BLOQUANT au build Astro, workflow docs.yml) — il
-  # connaît le base /cluster/ et résout les liens du site, ce que lychee (offline,
+  # connaît le base /nestor/ et résout les liens du site, ce que lychee (offline,
   # base virtuel) ne savait pas faire (ADR 0089). lychee a donc été retiré, comme
   # côté atlas. Les liens vers le code pointent désormais github.com/blob/main.
 

@@ -3,17 +3,17 @@
 Réconcilie en continu, depuis git, les manifestes **applicatifs** (apps
 `citation-*`) et les composants stateful déclarés en `Application` (Dagster,
 Marquez). Décision et frontière :
-[ADR 0022](/cluster/docs/decisions/0022-argocd-gitops-applicatif/).
+[ADR 0022](/nestor/docs/decisions/0022-argocd-gitops-applicatif/).
 
-| Fichier                                                                                                                                  | Rôle                                                                                            |
-| ---------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| [`argocd.yaml`](https://github.com/univ-lehavre/cluster/blob/main/platform/argocd/argocd.yaml)                                           | Bundle officiel v3.4.3 (3 CRDs+RBAC+Deploys), images par digest, `server.insecure`              |
-| [`appproject-atlas.yaml`](https://github.com/univ-lehavre/cluster/blob/main/platform/argocd/appproject-atlas.yaml)                       | `AppProject atlas` cadrant citation-\*/dagster/marquez ; `sourceRepos` surchargeable (ADR 0044) |
-| [`gateway.yaml`](https://github.com/univ-lehavre/cluster/blob/main/platform/argocd/gateway.yaml)                                         | `Gateway` + `HTTPRoute` d'exposition UI (TLS bordure cert-manager)                              |
-| [`_test/application-guestbook.yaml`](https://github.com/univ-lehavre/cluster/blob/main/platform/argocd/_test/application-guestbook.yaml) | `Application` guestbook de **test** (validation banc — jetable)                                 |
+| Fichier                                                                                                                            | Rôle                                                                                            |
+| ---------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| [`argocd.yaml`](https://github.com/chasset/nestor/blob/main/platform/argocd/argocd.yaml)                                           | Bundle officiel v3.4.3 (3 CRDs+RBAC+Deploys), images par digest, `server.insecure`              |
+| [`appproject-atlas.yaml`](https://github.com/chasset/nestor/blob/main/platform/argocd/appproject-atlas.yaml)                       | `AppProject atlas` cadrant citation-\*/dagster/marquez ; `sourceRepos` surchargeable (ADR 0044) |
+| [`gateway.yaml`](https://github.com/chasset/nestor/blob/main/platform/argocd/gateway.yaml)                                         | `Gateway` + `HTTPRoute` d'exposition UI (TLS bordure cert-manager)                              |
+| [`_test/application-guestbook.yaml`](https://github.com/chasset/nestor/blob/main/platform/argocd/_test/application-guestbook.yaml) | `Application` guestbook de **test** (validation banc — jetable)                                 |
 
 NetworkPolicies sous `platform/network-policies/argocd/`
-([`00-default-deny.yaml`](https://github.com/univ-lehavre/cluster/blob/main/platform/network-policies/argocd/00-default-deny.yaml) +
+([`00-default-deny.yaml`](https://github.com/chasset/nestor/blob/main/platform/network-policies/argocd/00-default-deny.yaml) +
 allow-dns/server/egress).
 
 ## Frontière Ansible / GitOps (anti-bootstrap-circulaire)
@@ -27,10 +27,10 @@ cert-manager, registry, Rook, Argo CD, opérateurs + CRDs) = Ansible ;
 ## Déploiement
 
 **Automatisé (Ansible, ADR 0022/0044)** : le rôle `platform-argocd` (via
-[`bootstrap/gitops.yaml`](https://github.com/univ-lehavre/cluster/blob/main/bootstrap/gitops.yaml))
+[`bootstrap/gitops.yaml`](https://github.com/chasset/nestor/blob/main/bootstrap/gitops.yaml))
 pose Argo CD + les NetworkPolicies + l'`AppProject` + (optionnel) le Gateway, en
 `--server-side`. Sur le banc Lima, c'est la phase `gitops`
-([`bench/lima/run-phases.sh`](https://github.com/univ-lehavre/cluster/blob/main/bench/lima/run-phases.sh)).
+([`bench/lima/run-phases.sh`](https://github.com/chasset/nestor/blob/main/bench/lima/run-phases.sh)).
 La séquence `kubectl` ci-dessous reste la **référence manuelle** (et ce que le
 rôle traduit) :
 
@@ -84,7 +84,7 @@ argocd login localhost:8080 --username admin --password "$PW" --plaintext
 
 Le cert du listener est émis par la CA interne (gateway-shim cert-manager). Sans
 import du root interne, le navigateur/CLI affiche un avertissement → importer le
-`ca.crt` (cf. README de [`cert-manager`](/cluster/platform/cert-manager/)).
+`ca.crt` (cf. README de [`cert-manager`](/nestor/platform/cert-manager/)).
 
 ## Validation (banc multi-node)
 

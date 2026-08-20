@@ -1,6 +1,6 @@
-# Cluster
+# nestor
 
-[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/univ-lehavre/cluster/badge)](https://scorecard.dev/viewer/?uri=github.com/univ-lehavre/cluster)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/chasset/nestor/badge)](https://scorecard.dev/viewer/?uri=github.com/chasset/nestor)
 
 > Un cluster Kubernetes de recherche hyperconvergé — installation, stockage
 > distribué, chaîne DataOps et services transverses, racontés de bout en bout.
@@ -44,8 +44,8 @@ Le dépôt n'est pas l'infrastructure d'un déploiement particulier mais un
 activée par déploiement
 ([ADR 0023](docs/decisions/0023-plateforme-exemple-generique.md)).
 
-`cluster` est le **socle** ; l'**applicatif vit dans le dépôt jumeau
-[`atlas`](https://github.com/univ-lehavre/atlas)**. Les deux sont reliés par un
+`nestor` est le **socle** ; l'**applicatif vit dans le dépôt jumeau
+[`atlas`](https://github.com/chasset/atlas)**. Les deux sont reliés par un
 **contrat d'interface explicite**
 ([ADR 0043](docs/decisions/0043-contrat-interface-cluster-atlas.md)) — `atlas`
 publie des images immuables, `cluster` les réconcilie et lui fournit ses briques
@@ -53,8 +53,8 @@ publie des images immuables, `cluster` les réconcilie et lui fournit ses brique
 (néophyte, de bout en bout), lire le [**manifeste**](docs/manifeste.md).
 
 📖 **Documentation en ligne** :
-[univ-lehavre.github.io/cluster](https://univ-lehavre.github.io/cluster/) —
-publiée automatiquement depuis `main` par
+[chasset.github.io/nestor](https://chasset.github.io/nestor/) — publiée
+automatiquement depuis `main` par
 [.github/workflows/docs.yml](.github/workflows/docs.yml).
 
 > 🔰 **Nouveau sur le sujet ?** Les termes techniques (Kubernetes, etcd, OSD,
@@ -133,7 +133,7 @@ gouvernance — c'est ce qui rend le dépôt lisible pour un nouveau contributeu
 | [`docs/`](docs/)                 | Glossaire, démarrage, ADR, audit (site Astro Starlight)              | Lien mort = build rouge ; conventions auto-vérifiées     |
 
 Ces conventions sont vérifiées en CI : `pnpm check:gouvernance`
-(ADR↔plans↔drifts), `pnpm lint:contract` (contrat d'interface `cluster`↔`atlas`)
+(ADR↔plans↔drifts), `pnpm lint:contract` (contrat d'interface `nestor`↔`atlas`)
 et `pnpm lint:topology` (cohérence des topologies déclarées). Détail des choix
 d'architecture : [`docs/decisions/`](docs/decisions/) (ADR).
 
@@ -292,8 +292,8 @@ le déploiement lui-même se pilote par ce qui est écrit dans Git.
 - **Réconciliation déclarative** par **Argo CD** + **Gitea** air-gapped : l'état
   cible est dans Git, l'opérateur converge le cluster vers cet état
   ([ADR 0022](docs/decisions/0022-argocd-gitops-applicatif.md)).
-- **Le déploiement suit Git, pas l'inverse.** `cluster` et l'applicatif
-  [`atlas`](https://github.com/univ-lehavre/atlas) sont deux dépôts au **contrat
+- **Le déploiement suit Git, pas l'inverse.** `nestor` et l'applicatif
+  [`atlas`](https://github.com/chasset/atlas) sont deux dépôts au **contrat
   d'interface explicite** : `atlas` publie des images immuables identifiées par
   empreinte (_digest_), `cluster` les réconcilie — jamais de tag `latest`
   ([ADR 0043](docs/decisions/0043-contrat-interface-cluster-atlas.md),
@@ -369,7 +369,7 @@ les cas d'usage relèvent de l'applicatif.
   câblé dans le graphe `nestor` et dans la layer `atlas`
   ([ADR 0083](docs/decisions/0083-layers-source-unique-de-l-ordre.md)).
 - **À venir** : le **code ML qui logge ses runs vit côté
-  [`atlas`](https://github.com/univ-lehavre/atlas)** (l'applicatif), pas dans le
+  [`atlas`](https://github.com/chasset/atlas)** (l'applicatif), pas dans le
   socle ; côté `cluster`, restent la validation au banc et l'observation des
   métriques MLflow. Le socle fournit la capacité ; l'usage est l'affaire du
   consommateur.
@@ -534,7 +534,7 @@ SSH) et l'isolation réseau ; aucun n'est exposé publiquement.
 
 **Ne pas** ouvrir d'issue publique. Utiliser le **Private Vulnerability
 Reporting** de GitHub
-(<https://github.com/univ-lehavre/cluster/security/advisories/new>) ou écrire au
+(<https://github.com/chasset/nestor/security/advisories/new>) ou écrire au
 mainteneur — procédure, périmètre et modèle de menace détaillés dans
 [SECURITY.md](SECURITY.md). Les rapports en anglais sont bienvenus.
 
@@ -562,10 +562,9 @@ juger en 5 min : [docs/preuves.md](docs/preuves.md).
 <!-- STATS:FIN -->
 
 _Bloc régénéré par `pnpm check:gouvernance --stats`. L'avancement détaillé est
-suivi par [**milestones**](https://github.com/univ-lehavre/cluster/milestones)
-et dans [`docs/plans/`](docs/plans/) ; contribuer :
-[CONTRIBUTING.md](CONTRIBUTING.md) ; signaler une vulnérabilité :
-[SECURITY.md](SECURITY.md)._
+suivi par [**milestones**](https://github.com/chasset/nestor/milestones) et dans
+[`docs/plans/`](docs/plans/) ; contribuer : [CONTRIBUTING.md](CONTRIBUTING.md) ;
+signaler une vulnérabilité : [SECURITY.md](SECURITY.md)._
 
 ### Décisions tracées (ADR)
 
@@ -585,13 +584,13 @@ registre
 compte **73 entrées** (symptôme, cause, correctif, statut, issue) ; sa page
 publiée est **régénérée et comparée en CI** (`render_drifts --check`).
 
-### Contrat d'interface `cluster` ↔ `atlas`
+### Contrat d'interface `nestor` ↔ `atlas`
 
-La frontière avec l'applicatif [`atlas`](https://github.com/univ-lehavre/atlas)
-est un **contrat machine-lisible** : **3 artefacts** sous
-[`contract/`](contract/) (endpoints des services, storage-classes par profil,
-namespaces & conventions de secrets). `pnpm lint:contract` vérifie en CI que ce
-contrat reste **aligné sur ce que `platform/` expose réellement**
+La frontière avec l'applicatif [`atlas`](https://github.com/chasset/atlas) est
+un **contrat machine-lisible** : **3 artefacts** sous [`contract/`](contract/)
+(endpoints des services, storage-classes par profil, namespaces & conventions de
+secrets). `pnpm lint:contract` vérifie en CI que ce contrat reste **aligné sur
+ce que `platform/` expose réellement**
 ([ADR 0043](docs/decisions/0043-contrat-interface-cluster-atlas.md)).
 
 ### Auto-vérification continue
@@ -617,11 +616,11 @@ pour juger en 5 min : [docs/preuves.md](docs/preuves.md).
 
 ## Documentation
 
-[![Documentation](https://img.shields.io/badge/docs-univ--lehavre.github.io%2Fcluster-blue.svg)](https://univ-lehavre.github.io/cluster/)
+[![Documentation](https://img.shields.io/badge/docs-chasset.github.io%2Fnestor-blue.svg)](https://chasset.github.io/nestor/)
 
 La documentation est publiée sur
-**[univ-lehavre.github.io/cluster](https://univ-lehavre.github.io/cluster/)**
-(sources dans [`docs/`](docs/), construites avec Astro Starlight) :
+**[chasset.github.io/nestor](https://chasset.github.io/nestor/)** (sources dans
+[`docs/`](docs/), construites avec Astro Starlight) :
 
 - [Manifeste](docs/manifeste.md) — le récit complet, de bout en bout, pour un
   public néophyte
@@ -639,7 +638,7 @@ La documentation est publiée sur
 
 Les badges ne sont pas décoratifs : chacun reflète un état **vrai et
 vérifiable** (recalculé en continu, ou fait stable). Le plus structurant —
-[OpenSSF Scorecard](https://scorecard.dev/viewer/?uri=github.com/univ-lehavre/cluster),
+[OpenSSF Scorecard](https://scorecard.dev/viewer/?uri=github.com/chasset/nestor),
 santé supply-chain notée /10 — est mis en avant **sous le titre**, seul.
 Regroupés ci-dessous par famille, les autres disent **quelles familles de
 qualité le dépôt revendique** — un badge n'est posé que s'il est honnête
@@ -652,7 +651,7 @@ version pour la citation académique, et le code est sous licence **MIT**
 (réutilisation libre, `LICENSE` + `NOTICE`).
 
 [![DOI](https://zenodo.org/badge/1243564575.svg)](https://doi.org/10.5281/zenodo.20287209)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/univ-lehavre/cluster/blob/main/LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/chasset/nestor/blob/main/LICENSE)
 
 ### Conventions & versionnement
 
@@ -664,7 +663,7 @@ généré automatiquement à chaque release.
 
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg)](https://www.conventionalcommits.org)
 [![SemVer](https://img.shields.io/badge/SemVer-2.0.0-blue.svg)](https://semver.org)
-[![Keep a Changelog](https://img.shields.io/badge/changelog-Keep%20a%20Changelog-orange.svg)](https://github.com/univ-lehavre/cluster/blob/main/CHANGELOG.md)
+[![Keep a Changelog](https://img.shields.io/badge/changelog-Keep%20a%20Changelog-orange.svg)](https://github.com/chasset/nestor/blob/main/CHANGELOG.md)
 
 ### Qualité & CI
 
@@ -676,8 +675,8 @@ sur le périmètre Python du dépôt. Détail des garde-fous : section
 [« Qualité — garde-fous en place »](#qualité--garde-fous-en-place) ci-dessus et
 [SAFEGUARDS.md](SAFEGUARDS.md).
 
-[![CI](https://github.com/univ-lehavre/cluster/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/univ-lehavre/cluster/actions/workflows/ci.yml)
-[![CodeQL](https://github.com/univ-lehavre/cluster/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/univ-lehavre/cluster/actions/workflows/codeql.yml)
+[![CI](https://github.com/chasset/nestor/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/chasset/nestor/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/chasset/nestor/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/chasset/nestor/actions/workflows/codeql.yml)
 
 ### Sécurité & supply-chain
 

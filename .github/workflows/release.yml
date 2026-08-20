@@ -51,14 +51,12 @@ jobs:
       # checks requis sont verts ; le tag git, la release GitHub et la mise à
       # jour de CHANGELOG.md + package.json suivent automatiquement.
       #
-      # IMPORTANT — token : l'organisation univ-lehavre verrouille le GITHUB_TOKEN
-      # par défaut en lecture seule (« Write permissions for workflows are
-      # disabled by the organization »), ce qui empêche release-please de pousser
-      # le tag/la release. On utilise donc un PAT fine-grained dédié
-      # (secret RELEASE_PLEASE_TOKEN, scope = ce repo : Contents RW + Pull
-      # requests RW). Ce token, contrairement au GITHUB_TOKEN, redéclenche aussi
-      # la CI sur la PR de release — sans quoi l'auto-merge resterait bloqué en
-      # attente de checks qui ne tournent jamais.
+      # IMPORTANT — token : PAT fine-grained dédié (secret RELEASE_PLEASE_TOKEN,
+      # scope = ce repo : Contents RW + Pull requests RW). Le GITHUB_TOKEN ne
+      # redéclenche PAS les workflows : sans ce PAT, la CI ne tournerait pas sur
+      # la PR de release et l'auto-merge resterait bloqué en attente de checks
+      # qui ne tournent jamais (le PAT redéclenche la CI sur la PR de release,
+      # comme un push normal).
       #
       # La version cible est dérivée des messages Conventional Commits depuis
       # le dernier tag :
@@ -181,10 +179,10 @@ jobs:
         env:
           TAG: ${{ github.event.release.tag_name }}
         run: |
-          NAME="cluster-${TAG}.tar.gz"
+          NAME="nestor-${TAG}.tar.gz"
           # Archive du code au tag, sans le .git (équivalent stable de l'archive
           # GitHub, mais publiée comme asset signé — fige la version citée DOI).
-          git archive --format=tar.gz --prefix="cluster-${TAG}/" -o "$NAME" HEAD
+          git archive --format=tar.gz --prefix="nestor-${TAG}/" -o "$NAME" HEAD
           echo "name=$NAME" >>"$GITHUB_OUTPUT"
 
       - name: Empreinte SHA-256 (base64) pour la provenance SLSA

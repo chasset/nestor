@@ -1,15 +1,15 @@
 # cert-manager — TLS de bordure (CA interne)
 
 Émet et renouvelle les certificats TLS du **Gateway de bordure** Cilium
-([ADR 0020](/cluster/docs/decisions/0020-exposition-reseau-tout-cilium/)) via
-une **CA interne** — pas ACME, car le cluster n'est pas exposé à Internet.
-Décision et justifications :
-[ADR 0021](/cluster/docs/decisions/0021-cert-manager-ca-interne/).
+([ADR 0020](/nestor/docs/decisions/0020-exposition-reseau-tout-cilium/)) via une
+**CA interne** — pas ACME, car le cluster n'est pas exposé à Internet. Décision
+et justifications :
+[ADR 0021](/nestor/docs/decisions/0021-cert-manager-ca-interne/).
 
-| Fichier                                                                                                          | Rôle                                                                                           |
-| ---------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| [`cert-manager.yaml`](https://github.com/univ-lehavre/cluster/blob/main/platform/cert-manager/cert-manager.yaml) | Bundle officiel v1.20.2 (CRDs+RBAC+Deploys+webhook), images par digest, `--enable-gateway-api` |
-| [`issuers.yaml`](https://github.com/univ-lehavre/cluster/blob/main/platform/cert-manager/issuers.yaml)           | Chaîne CA interne : `selfsigned-bootstrap` → `root-ca` → `internal-ca`                         |
+| Fichier                                                                                                    | Rôle                                                                                           |
+| ---------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| [`cert-manager.yaml`](https://github.com/chasset/nestor/blob/main/platform/cert-manager/cert-manager.yaml) | Bundle officiel v1.20.2 (CRDs+RBAC+Deploys+webhook), images par digest, `--enable-gateway-api` |
+| [`issuers.yaml`](https://github.com/chasset/nestor/blob/main/platform/cert-manager/issuers.yaml)           | Chaîne CA interne : `selfsigned-bootstrap` → `root-ca` → `internal-ca`                         |
 
 ## Déploiement
 
@@ -25,7 +25,7 @@ kubectl -n cert-manager get certificate root-ca              # READY=True
 ```
 
 > **Pré-requis Gateway API** : depuis
-> l'[ADR 0092](/cluster/docs/decisions/0092-exposition-hostport-l4/) les UI sont
+> l'[ADR 0092](/nestor/docs/decisions/0092-exposition-hostport-l4/) les UI sont
 > exposées en **L4** (`NodePort`/`hostPort`, `http://<IP-nœud>:<port>`) — le
 > Gateway L7 n'est **plus** dans le chemin d'exposition et l'addon
 > `platform/cilium-expo/` a été retiré. cert-manager n'a donc plus besoin des

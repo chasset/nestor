@@ -130,7 +130,7 @@ toute autoconfiguration échoue : il faut configurer l’IP **manuellement**.
 > Ne concerne **que** le disque de démarrage (miroir NVMe HPE NS204i-p, ~447
 > GiB). Les **12 HDD SAS 5,5 TiB et le NVMe `nvme1n1` 2,9 TiB restent bruts, non
 > partitionnés** : ils sont consommés directement par Ceph (voir
-> [`storage/ceph/cluster.yaml`](https://github.com/univ-lehavre/cluster/blob/main/storage/ceph/cluster.yaml)).
+> [`storage/ceph/cluster.yaml`](https://github.com/chasset/nestor/blob/main/storage/ceph/cluster.yaml)).
 > Ne jamais créer de partition dessus.
 
 Le défaut d’usine (`/home` = 404 G, `/var` = 9 G) étouffe `/var`, qui héberge
@@ -138,8 +138,8 @@ Le défaut d’usine (`/home` = 404 G, `/var` = 9 G) étouffe `/var`, qui héber
 donc le disque de boot. **Tous les nœuds reçoivent le MÊME layout** (recette
 d’installation unique, moins d’erreurs manuelles ; un nœud peut être promu
 control plane sans repartitionner — cf. évolution HA,
-[ADR 0002](/cluster/docs/decisions/0002-control-plane-unique-avec-endpoint/)).
-La seule LV dont l’usage diffère est `lv_etcd`, détaillée sous le tableau.
+[ADR 0002](/nestor/docs/decisions/0002-control-plane-unique-avec-endpoint/)). La
+seule LV dont l’usage diffère est `lv_etcd`, détaillée sous le tableau.
 
 | Partition / LV | Taille   | Montage         | FS    | Rôle                                                                  |
 | -------------- | -------- | --------------- | ----- | --------------------------------------------------------------------- |
@@ -241,7 +241,7 @@ laisser le **domaine** vide. Vérifier la passerelle et le DNS réels du `/22`
 ## Premier accès SSH
 
 Le script
-[`first-access.sh`](https://github.com/univ-lehavre/cluster/blob/main/bootstrap/first-access.sh)
+[`first-access.sh`](https://github.com/chasset/nestor/blob/main/bootstrap/first-access.sh)
 automatise le **strict minimum** nécessaire pour qu'Ansible puisse ensuite
 piloter les nœuds sans mot de passe, **et** ferme immédiatement la fenêtre
 d'authentification par mot de passe :
@@ -290,7 +290,7 @@ avec le nombre de jours écoulés.
 ## Durcissement de l'OS (`bootstrap/security/`)
 
 Les rôles Ansible de durcissement complet sont fusionnés dans ce dépôt via
-`git subtree` sous [`bootstrap/security/`](/cluster/bootstrap/security/) :
+`git subtree` sous [`bootstrap/security/`](/nestor/bootstrap/security/) :
 `unattended-upgrades`, **UFW**, `fail2ban`, `auditd`, `postfix` (redirection des
 mails système), gestion du compte admin (expiration mot de passe). Origine :
 `univ-lehavre/server-security` (DOI
@@ -304,7 +304,7 @@ variable risqué) ont été retirés. `first-access.sh` est la **source unique**
 
 Le playbook `secure.yml` est **entièrement opt-in** : sans `--tags`, il ne
 touche à rien (il charge juste les variables). Voir
-[`bootstrap/security/IMPLICATIONS.md`](/cluster/bootstrap/security/IMPLICATIONS/)
+[`bootstrap/security/IMPLICATIONS.md`](/nestor/bootstrap/security/IMPLICATIONS/)
 pour, couche par couche, ce qui change, ce qui est protégé, le compromis assumé,
 et la commande pour s'en convaincre soi-même.
 
@@ -356,7 +356,7 @@ seule, ne modifie rien.
 > **À n'activer qu'APRÈS le bootstrap K8s** (`secure.yml --tags ufw`) : activer
 > UFW avant que le cluster existe couperait l'init. L'état d'UFW est surveillé
 > par
-> [`state.sh`](https://github.com/univ-lehavre/cluster/blob/main/bootstrap/state.sh)
+> [`state.sh`](https://github.com/chasset/nestor/blob/main/bootstrap/state.sh)
 > (couche 2) — un UFW actif sans la règle inter-nœuds, ou installé mais inactif,
 > est signalé comme **drift**.
 
@@ -370,12 +370,12 @@ par le rôle Ansible `k8s-pre-install` du présent dépôt (`checks.yaml`).
 L'inventaire n'a **plus d'existence persistante** : il est **dérivé de la
 topologie active** à chaque commande `nestor ansible` (source unique
 d'inventaire,
-[ADR 0098](/cluster/docs/decisions/0098-source-unique-inventaire-nestor-derive/))
+[ADR 0098](/nestor/docs/decisions/0098-source-unique-inventaire-nestor-derive/))
 — fini le `bootstrap/hosts.yaml` à créer/éditer. L'opérateur déclare ses nœuds
 dans une `topology.yaml` locale (config de déploiement gitignorée,
-[ADR 0023](/cluster/docs/decisions/0023-plateforme-exemple-generique/)) : copier
+[ADR 0023](/nestor/docs/decisions/0023-plateforme-exemple-generique/)) : copier
 un modèle générique versionné du catalogue (p. ex.
-[`topologies/socle.example.yaml`](https://github.com/univ-lehavre/cluster/blob/main/topologies/socle.example.yaml),
+[`topologies/socle.example.yaml`](https://github.com/chasset/nestor/blob/main/topologies/socle.example.yaml),
 le profil prod générique) puis renseigner ses noms/IP réels.
 
 ```bash
@@ -416,9 +416,9 @@ cilium connectivity test
 
 Cilium assure l'**exposition réseau** du cluster, en remplacement de MetalLB et
 d'ingress-nginx
-([ADR 0020](/cluster/docs/decisions/0020-exposition-reseau-tout-cilium/)).
-[`cni.sh`](https://github.com/univ-lehavre/cluster/blob/main/bootstrap/cni.sh)
-arme désormais, à l'install **et** à l'upgrade :
+([ADR 0020](/nestor/docs/decisions/0020-exposition-reseau-tout-cilium/)).
+[`cni.sh`](https://github.com/chasset/nestor/blob/main/bootstrap/cni.sh) arme
+désormais, à l'install **et** à l'upgrade :
 
 - **`kubeProxyReplacement=true`** (datapath eBPF) + `k8sServiceHost=cluster-api`
   - `k8sServicePort=6443` (obligatoires sans kube-proxy : l'agent ne joint plus
@@ -431,7 +431,7 @@ arme désormais, à l'install **et** à l'upgrade :
 
 Ces features restent disponibles côté Cilium, mais **les UI ne sont plus
 exposées par le Gateway L7** : depuis
-l'[ADR 0092](/cluster/docs/decisions/0092-exposition-hostport-l4/), l'accès aux
+l'[ADR 0092](/nestor/docs/decisions/0092-exposition-hostport-l4/), l'accès aux
 UI passe en **L4** (`NodePort`/`hostPort` sur l'IP du nœud,
 `http://<IP-nœud>:<port>` — zéro DNS, zéro LB-IPAM). Le dossier de CRs
 `platform/cilium-expo/` (GatewayClass/pools/policies) et les `gateway.yaml` de
@@ -533,9 +533,9 @@ k get pods --all-namespaces
 L'accès distant aux services internes (dashboards, consoles, API d'opérateurs)
 passe par `kubectl port-forward` depuis un poste autorisé à joindre l'API
 Kubernetes — il n'y a **pas** de réseau d'overlay ni de VPN dédié
-([ADR 0003](/cluster/docs/decisions/0003-pas-de-chiffrement-ceph-tailscale/)).
-Le poste de contrôle dispose déjà du kubeconfig fusionné (section précédente) ;
-le tunnel est local au poste et ne traverse que l'API server.
+([ADR 0003](/nestor/docs/decisions/0003-pas-de-chiffrement-ceph-tailscale/)). Le
+poste de contrôle dispose déjà du kubeconfig fusionné (section précédente) ; le
+tunnel est local au poste et ne traverse que l'API server.
 
 ```bash
 # Exposer localement un service ClusterIP (ex. un dashboard) :
@@ -548,14 +548,14 @@ l'accès. Aucun port supplémentaire n'est ouvert sur les nœuds.
 
 ### Installation de Ceph
 
-Voir [`storage/ceph/RUNBOOK.md`](/cluster/storage/ceph/RUNBOOK/).
+Voir [`storage/ceph/RUNBOOK.md`](/nestor/storage/ceph/RUNBOOK/).
 
 ## Audit-log et rollback
 
 ### Audit-log : qui a fait quoi quand sur chaque nœud
 
 Chaque playbook bootstrap invoque en `pre_tasks` le rôle
-[`audit-log`](https://github.com/univ-lehavre/cluster/blob/main/bootstrap/roles/audit-log),
+[`audit-log`](https://github.com/chasset/nestor/blob/main/bootstrap/roles/audit-log),
 qui pose une ligne dans `/var/log/cluster-bootstrap.log` du nœud cible :
 
 ```text
@@ -581,7 +581,7 @@ Lecture :
 ssh debian@cp1 'sudo tail -n 20 /var/log/cluster-bootstrap.log'
 ```
 
-[`bootstrap/state.sh`](https://github.com/univ-lehavre/cluster/blob/main/bootstrap/state.sh)
+[`bootstrap/state.sh`](https://github.com/chasset/nestor/blob/main/bootstrap/state.sh)
 **couche 0** lit ce journal et affiche par nœud :
 
 - le dernier playbook joué + son âge → suivi rapide.
@@ -599,13 +599,13 @@ reconnu après le fait » sans rejouer tout le bootstrap :
 nestor ansible audit-log-baseline.yaml
 ```
 
-[`audit-log-baseline.yaml`](https://github.com/univ-lehavre/cluster/blob/main/bootstrap/audit-log-baseline.yaml)
+[`audit-log-baseline.yaml`](https://github.com/chasset/nestor/blob/main/bootstrap/audit-log-baseline.yaml)
 appose une ligne « baseline » et débloque la couche 0. Les playbooks suivants
 ajouteront des lignes normales par-dessus.
 
 ### Rollback du bootstrap K8s
 
-[`rollback.yaml`](https://github.com/univ-lehavre/cluster/blob/main/bootstrap/rollback.yaml)
+[`rollback.yaml`](https://github.com/chasset/nestor/blob/main/bootstrap/rollback.yaml)
 ramène un nœud à un état "Debian 13 + utilisateur debian + first-access" — comme
 si aucun playbook K8s n'avait été joué :
 
@@ -634,14 +634,14 @@ Ce que le rollback fait :
 
 Ce que le rollback **ne** touche **pas** :
 
-- [`first-access.sh`](https://github.com/univ-lehavre/cluster/blob/main/bootstrap/first-access.sh)
+- [`first-access.sh`](https://github.com/chasset/nestor/blob/main/bootstrap/first-access.sh)
   (drop-in sshd + sudoers + clé SSH) ;
-- [`security/secure.yml`](/cluster/bootstrap/security/) (hardening opt-in :
+- [`security/secure.yml`](/nestor/bootstrap/security/) (hardening opt-in :
   auditd, fail2ban, mises à jour automatiques) ;
 - [le partitionnement et l'installation OS](#partitionnement-du-disque-de-démarrage)
   ;
 - les **disques Ceph** + `/var/lib/rook` → utiliser
-  [`storage/ceph/cleanup.sh`](https://github.com/univ-lehavre/cluster/blob/main/storage/ceph/cleanup.sh).
+  [`storage/ceph/cleanup.sh`](https://github.com/chasset/nestor/blob/main/storage/ceph/cleanup.sh).
 
 Cas d'usage typique sur le banc :
 
@@ -673,7 +673,7 @@ nestor ansible os-upgrade.yaml
 Montée de version K8s **in-place**, séquencée (control plane d'abord, puis
 workers un par un). **Une mineure à la fois** ; vérifier la compat croisée
 Cilium/Rook/Ceph
-([ADR 0006](/cluster/docs/decisions/0006-matrice-de-versions-et-politique-de-bump/))
+([ADR 0006](/nestor/docs/decisions/0006-matrice-de-versions-et-politique-de-bump/))
 **avant**, et **valider sur le banc multi-node** d'abord.
 
 ```bash
@@ -689,15 +689,15 @@ nestor ansible k8s-upgrade.yaml \
 Le playbook draine chaque nœud avant son upgrade et le `uncordon` ensuite ; un
 seul nœud est indisponible à la fois. L'API est brièvement coupée pendant
 l'`apply` sur le control plane (SPOF assumé,
-[ADR 0002](/cluster/docs/decisions/0002-control-plane-unique-avec-endpoint/)).
+[ADR 0002](/nestor/docs/decisions/0002-control-plane-unique-avec-endpoint/)).
 Détails et compromis :
-[ADR 0015](/cluster/docs/decisions/0015-strategie-upgrade-kubernetes/).
+[ADR 0015](/nestor/docs/decisions/0015-strategie-upgrade-kubernetes/).
 
 ### Sauvegarde etcd (SPOF assumé)
 
 Le cluster fonctionne avec **1 seul control plane** (`cp1`) — décision assumée
 (cf.
-[ADR 0002](/cluster/docs/decisions/0002-control-plane-unique-avec-endpoint/)).
+[ADR 0002](/nestor/docs/decisions/0002-control-plane-unique-avec-endpoint/)).
 C'est un **SPOF** : la perte du nœud control plane → cluster inutilisable
 jusqu'à restauration. Mitigations :
 
@@ -705,7 +705,7 @@ jusqu'à restauration. Mitigations :
    `k8s-initialization`) : l'API est référencée par un nom DNS stable, donc un
    futur ajout de control planes n'imposera pas de réinstaller les workers.
 2. **Sauvegarde etcd horaire** via le rôle
-   [`etcd-backup`](https://github.com/univ-lehavre/cluster/blob/main/bootstrap/roles/etcd-backup)
+   [`etcd-backup`](https://github.com/chasset/nestor/blob/main/bootstrap/roles/etcd-backup)
    :
 
    ```bash
@@ -723,7 +723,7 @@ jusqu'à restauration. Mitigations :
    ```
 
 3. **Copie hors-nœud** via
-   [`etcd-fetch.yaml`](https://github.com/univ-lehavre/cluster/blob/main/bootstrap/etcd-fetch.yaml)
+   [`etcd-fetch.yaml`](https://github.com/chasset/nestor/blob/main/bootstrap/etcd-fetch.yaml)
    (audit P1 #3) : les snapshots du point 2 restent **sur le control plane** →
    perdus si `cp1` meurt. Ce playbook rapatrie le snapshot le plus récent vers
    le **poste de contrôle** (dossier `etcd-snapshots/`, gitignoré) :
@@ -735,7 +735,7 @@ jusqu'à restauration. Mitigations :
    **RPO** = fréquence de ce fetch. Recommandé : le planifier côté admin (cron /
    launchd), p. ex. toutes les 6 h → RPO ≤ 6 h hors-nœud (et ≤ 1 h sur le nœud
    via le timer horaire). ⚠️ Le snapshot contient **tous les Secrets** (etcd non
-   chiffré, [ADR 0014](/cluster/docs/decisions/0014-durcissement-kubeadm-init/))
+   chiffré, [ADR 0014](/nestor/docs/decisions/0014-durcissement-kubeadm-init/))
    : garder `etcd-snapshots/` sur un poste de confiance.
 
 #### Restauration etcd (procédure)
@@ -768,7 +768,7 @@ kubectl get nodes      # attendre que les nœuds redeviennent Ready
 ```
 
 > Tester cette procédure **sur le banc Lima multi-nœuds** avant d'en avoir
-> besoin en prod (cf. [`bench/lima/`](/cluster/bench/lima/)).
+> besoin en prod (cf. [`bench/lima/`](/nestor/bench/lima/)).
 
 ### Rotation de la clé de chiffrement etcd (ADR 0014)
 
@@ -810,7 +810,7 @@ sudo touch /etc/kubernetes/manifests/kube-apiserver.yaml
 
 Vérifier qu'un Secret est bien chiffré après chaque étape (`k8s:enc:secretbox:`)
 via `etcdctl` — c'est ce que fait le scénario
-[`bench/scenarios/15-etcd-encryption-audit.sh`](https://github.com/univ-lehavre/cluster/blob/main/bench/scenarios/15-etcd-encryption-audit.sh)
+[`bench/scenarios/15-etcd-encryption-audit.sh`](https://github.com/chasset/nestor/blob/main/bench/scenarios/15-etcd-encryption-audit.sh)
 (`ROTATE=1` déroule et vérifie toute la rotation, témoin inclus). **Tester sur
 le banc avant la prod.**
 
@@ -819,30 +819,30 @@ le banc avant la prod.**
 Si vous installez à partir d'une **version figée** (et non du HEAD), chaque
 release publie une archive source signée — vérifiez son **intégrité** et sa
 **provenance** avant usage. Les assets de la release (onglet _Releases_) :
-`cluster-<TAG>.tar.gz`, sa signature `.sig` + son certificat `.pem` (cosign), et
+`nestor-<TAG>.tar.gz`, sa signature `.sig` + son certificat `.pem` (cosign), et
 l'attestation de provenance `*.intoto.jsonl` (SLSA). Signature **keyless** :
 aucune clé publique à récupérer, l'identité est le workflow GitHub lui-même.
 
 ```bash
 TAG=v2.38.0   # la version visée
-gh release download "$TAG" --repo univ-lehavre/cluster   # archive + .sig + .pem + provenance
+gh release download "$TAG" --repo chasset/nestor   # archive + .sig + .pem + provenance
 
 # 1. Intégrité + identité du signataire (cosign keyless) :
 cosign verify-blob \
-  --certificate "cluster-${TAG}.pem" \
-  --signature   "cluster-${TAG}.tar.gz.sig" \
+  --certificate "nestor-${TAG}.pem" \
+  --signature   "nestor-${TAG}.tar.gz.sig" \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-  --certificate-identity-regexp '^https://github.com/univ-lehavre/cluster/\.github/workflows/release\.yml@.*' \
-  "cluster-${TAG}.tar.gz"
+  --certificate-identity-regexp '^https://github.com/chasset/nestor/\.github/workflows/release\.yml@.*' \
+  "nestor-${TAG}.tar.gz"
 
 # 2. Provenance SLSA (l'archive vient bien de CE dépôt, à CE commit) :
-slsa-verifier verify-artifact "cluster-${TAG}.tar.gz" \
+slsa-verifier verify-artifact "nestor-${TAG}.tar.gz" \
   --provenance-path *.intoto.jsonl \
-  --source-uri github.com/univ-lehavre/cluster
+  --source-uri github.com/chasset/nestor
 ```
 
 Une vérification qui échoue (signature invalide, identité inattendue, source
 divergente) = **archive non fiable** : ne pas l'utiliser. La signature ne vit
 **que** dans le code versionné
-([`.github/workflows/release.yml`](https://github.com/univ-lehavre/cluster/blob/main/.github/workflows/release.yml)),
+([`.github/workflows/release.yml`](https://github.com/chasset/nestor/blob/main/.github/workflows/release.yml)),
 re-prouvée à chaque release — pas d'étape manuelle (ADR 0088).

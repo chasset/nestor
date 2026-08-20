@@ -111,7 +111,7 @@ Accepted.
   curseur **s'arrête à CNPG** et **n'atteint pas** l'env du pod code-location
   `atlas` aujourd'hui. Le **versant applicatif** — le pipeline atlas réagissant
   au mode (bornes d'ingestion, cache) — est traité côté atlas
-  ([ADR atlas 0102](https://github.com/univ-lehavre/atlas/blob/main/docs/src/content/docs/decisions/0102-cache-adaptatif-reaction-persistence-mode.md),
+  ([ADR atlas 0102](https://github.com/chasset/atlas/blob/main/docs/src/content/docs/decisions/0102-cache-adaptatif-reaction-persistence-mode.md),
   volet différé cluster#630). Câbler la variable jusqu'au pod atlas est un
   **second geste** non encore fait (le défaut `full` garantit l'absence de
   régression tant qu'il ne l'est pas).

@@ -302,7 +302,7 @@ qu'invoque le
 
 Le _build + push_ de l'image applicative reste un **geste opérateur unique
 assumé** : `nestor ansible code-location-build.yaml`
-([`platform-build-images`](/cluster/bootstrap/roles/platform-build-images/))
+([`platform-build-images`](/nestor/bootstrap/roles/platform-build-images/))
 build + push `registry:80/<cl>-dagster`, **lit le digest réel**
 (`nerdctl image inspect`), puis le **seed l'injecte** dans l'overlay Kustomize
 (`images: digest:`) poussé dans le dépôt de code que réconcilie **Argo CD** —

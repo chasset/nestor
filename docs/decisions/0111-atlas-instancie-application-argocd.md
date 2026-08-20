@@ -23,7 +23,7 @@ préambule s'ajuste). Découle de
 pilote la plateforme, pas le code atlas ») et de
 [ADR 0110](0110-preimage-de-build-et-build-in-pod.md) (le build de l'image de
 code est déjà sorti du cluster). Côté atlas, amende
-[ADR 0075](https://github.com/univ-lehavre/atlas/blob/main/docs/src/content/docs/decisions/0075-deploiement-prod-par-digest-injecte-cluster.md)
+[ADR 0075](https://github.com/chasset/atlas/blob/main/docs/src/content/docs/decisions/0075-deploiement-prod-par-digest-injecte-cluster.md)
 (distinguer « atlas ne build pas l'image de prod » — inchangé — de « atlas crée
 désormais l'`Application` » — nouveau).
 

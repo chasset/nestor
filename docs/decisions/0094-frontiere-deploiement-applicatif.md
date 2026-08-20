@@ -61,7 +61,7 @@ montante. Deux faits, vérifiés, cadrent la décision :
 - **L'`Application` Argo CD applicative est DÉJÀ instanciée côté cluster — un
   pattern existe.** L'audit suppose qu'aucun mécanisme ne crée l'`Application`
   d'une app atlas. C'est inexact :
-  [`bench/lima/gitea-init.sh`](https://github.com/univ-lehavre/cluster/blob/b522133b7cea/bench/lima/gitea-init.sh)
+  [`bench/lima/gitea-init.sh`](https://github.com/chasset/nestor/blob/b522133b7cea/bench/lima/gitea-init.sh)
   (l. 172-198) crée l'`Application` `atlas-workflows` par `kubectl apply`, en
   injectant le `repoURL` **réel** (URL Gitea intra-banc) — valeur de déploiement
   jamais versionnée — tandis que le **template** versionné
@@ -122,7 +122,7 @@ générique : `cluster/apps`) :
 régit le **CONTENU applicatif** (le code atlas que l'`Application` réconcilie) ;
 **déclarer la CR `Application` côté cluster/harnais est déjà le modèle livré**
 (cf. §Contexte,
-[`gitea-init.sh`](https://github.com/univ-lehavre/cluster/blob/b522133b7cea/bench/lima/gitea-init.sh)
+[`gitea-init.sh`](https://github.com/chasset/nestor/blob/b522133b7cea/bench/lima/gitea-init.sh)
 l. 172-198). On **généralise** le pattern existant — template `*.example.yaml`
 versionné + injection du `repoURL` réel au seed — d'**un cas codé en dur** à
 **un repo déclaratif** : le `repoURL` reste une **valeur de déploiement
@@ -237,7 +237,7 @@ cluster n'invente pas le schéma, il l'exécute.
 **Le trou est fermé.** Toute app applicative — pas seulement `atlas-workflows` —
 se déploie par l'**App-of-Apps** : ajouter une app = pousser un fichier dans
 `cluster/apps`. Le pattern codé en dur dans
-[`gitea-init.sh`](https://github.com/univ-lehavre/cluster/blob/b522133b7cea/bench/lima/gitea-init.sh)
+[`gitea-init.sh`](https://github.com/chasset/nestor/blob/b522133b7cea/bench/lima/gitea-init.sh)
 devient un **chemin déclaratif** généralisé.
 
 **La doc redevient fiable.** La procédure de mise en prod d'une app vit **côté

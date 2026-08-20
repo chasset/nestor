@@ -29,7 +29,7 @@ Exemples de comportements inacceptables :
 ## Application
 
 Les cas de comportement abusif, harcelant ou autrement inacceptable peuvent être
-signalés au mainteneur du projet à **pierre-olivier.chasset@univ-lehavre.fr**.
+signalés au mainteneur du projet à **1488688+chasset@users.noreply.github.com**.
 Toutes les plaintes seront examinées et donneront lieu à une réponse jugée
 nécessaire et adaptée aux circonstances. Le mainteneur s'engage à respecter la
 confidentialité de la personne ayant rapporté un incident.
