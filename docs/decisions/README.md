@@ -134,3 +134,4 @@ Format léger inspiré de Michael Nygard :
 | 0112 | [CI/CD in-cluster : Gitea Actions + BuildKit rootless (le build in-pod, rétabli)](0112-cicd-in-cluster-gitea-actions-buildkit.md)                  | Accepted           |
 | 0113 | [Chaîne de livraison autonome : la branche deploy matérialisée par la CI](0113-chaine-livraison-branche-deploy.md)                                 | Accepted           |
 | 0114 | [nestor access dérive GITEA_PUSH_URL : la cible de livraison atlas, par topologie](0114-nestor-derive-gitea-push-url.md)                           | Accepted           |
+| 0115 | [Retrait de la CI/CD GitHub-only : portage de la CI sur Gitea Actions](0115-retrait-pipeline-github-release-portage-gitea.md)                      | Accepted           |

@@ -43,26 +43,53 @@ jobs:
       # Ouvre (ou met à jour) UNE issue récapitulative quand il y a des
       # manquements (rc != 0). Unicité par LABEL (match exact), jamais par titre
       # (leçon des doublons #273/#288, cf. bench-freshness.yml).
+      #
+      # Portable GitHub/Gitea (ADR 0115) : `gh` sur github.com, API REST Gitea
+      # (curl + python3) sur Gitea — GITHUB_SERVER_URL est posé par les deux forges.
       - name: Ouvrir/mettre à jour l'issue de conformité
         if: ${{ steps.check.outputs.rc != '0' }}
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITEA_TOKEN: ${{ secrets.GITEA_TOKEN }}
           REPORT: ${{ steps.check.outputs.report }}
         run: |
+          set -euo pipefail
           LABEL="conventions-freshness"
           TITLE="📋 Conventions de gouvernance — manquements détectés"
           NOTE="— Détecté par conventions-freshness.yml (ADR 0060). Corriger les points"
           NOTE="${NOTE} ci-dessus puis relancer le workflow ; l'issue se referme quand"
           NOTE="${NOTE} le rapport est vert. Non bloquant (ADR 0042 §1)."
           BODY=$(printf '%s\n\n%s' "$REPORT" "$NOTE")
-          gh label create "$LABEL" --color 0E8A16 \
-            --description "Manquements aux conventions de gouvernance — une seule à la fois" \
-            --repo "$GITHUB_REPOSITORY" 2>/dev/null || true
-          EXISTING=$(gh issue list --state open --label "$LABEL" --json number --jq '.[0].number // empty' --repo "$GITHUB_REPOSITORY")
-          if [ -n "$EXISTING" ]; then
-            echo "Issue de conformité #$EXISTING déjà ouverte → commentaire."
-            gh issue comment "$EXISTING" --body "$BODY" --repo "$GITHUB_REPOSITORY"
+          if [ "$GITHUB_SERVER_URL" = "https://github.com" ]; then
+            gh label create "$LABEL" --color 0E8A16 \
+              --description "Manquements aux conventions de gouvernance — une seule à la fois" \
+              --repo "$GITHUB_REPOSITORY" 2>/dev/null || true
+            EXISTING=$(gh issue list --state open --label "$LABEL" --json number --jq '.[0].number // empty' --repo "$GITHUB_REPOSITORY")
+            if [ -n "$EXISTING" ]; then
+              echo "Issue de conformité #$EXISTING déjà ouverte → commentaire."
+              gh issue comment "$EXISTING" --body "$BODY" --repo "$GITHUB_REPOSITORY"
+            else
+              echo "Aucune issue de conformité ouverte → création."
+              gh issue create --title "$TITLE" --body "$BODY" --label "$LABEL" --repo "$GITHUB_REPOSITORY"
+            fi
           else
-            echo "Aucune issue de conformité ouverte → création."
-            gh issue create --title "$TITLE" --body "$BODY" --label "$LABEL" --repo "$GITHUB_REPOSITORY"
+            API="$GITHUB_SERVER_URL/api/v1/repos/$GITHUB_REPOSITORY"
+            AUTH="Authorization: token ${GITEA_TOKEN}"
+            DESC="Manquements aux conventions de gouvernance — une seule à la fois"
+            JSON=$(python3 -c 'import json,sys; print(json.dumps({"name": sys.argv[1], "color": "0E8A16", "description": sys.argv[2]}))' "$LABEL" "$DESC")
+            curl -sS -X POST -H "$AUTH" -H 'Content-Type: application/json' \
+              -d "$JSON" "$API/labels" >/dev/null || true
+            EXISTING=$(curl -sS -H "$AUTH" "$API/issues?state=open&labels=$LABEL" \
+              | python3 -c 'import sys,json; d=json.load(sys.stdin); print(d[0]["number"] if d else "")')
+            if [ -n "$EXISTING" ]; then
+              echo "Issue de conformité #$EXISTING déjà ouverte → commentaire."
+              JSON=$(python3 -c 'import json,sys; print(json.dumps({"body": sys.argv[1]}))' "$BODY")
+              curl -sS -X POST -H "$AUTH" -H 'Content-Type: application/json' \
+                -d "$JSON" "$API/issues/$EXISTING/comments" >/dev/null
+            else
+              echo "Aucune issue de conformité ouverte → création."
+              JSON=$(python3 -c 'import json,sys; print(json.dumps({"title": sys.argv[1], "body": sys.argv[2]}))' "$TITLE" "$BODY")
+              curl -sS -X POST -H "$AUTH" -H 'Content-Type: application/json' \
+                -d "$JSON" "$API/issues" >/dev/null
+            fi
           fi

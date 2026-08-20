@@ -66,31 +66,59 @@ jobs:
       # (`--search "<titre> in:title"` renvoyait 0 même quand l'issue existe) →
       # une nouvelle issue était créée à chaque run (doublons #273/#288). Le
       # filtre `--label` est un match EXACT et fiable : au plus une issue ouverte.
+      #
+      # Portable GitHub/Gitea (ADR 0115) : `gh` (CLI GitHub) sur github.com, API
+      # REST Gitea (curl + python3 pour le JSON) sur Gitea — GITHUB_SERVER_URL est
+      # posé par les deux forges.
       - name: Ouvrir/mettre à jour l'issue de rappel
         if: ${{ steps.check.outputs.rc != '0' }}
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITEA_TOKEN: ${{ secrets.GITEA_TOKEN }}
           SUMMARY: ${{ steps.check.outputs.summary }}
         run: |
+          set -euo pipefail
           LABEL="bench-freshness"
           TITLE="⏰ Preuve de banc périmée — relancer le(s) chemin(s) concerné(s)"
           NOTE="— Détecté par bench-freshness.yml (ADR 0042 / ADR 0045 §6). Le détail"
           NOTE="${NOTE} ci-dessus nomme le(s) chemin(s) périmé(s) ; relancer ce(s) chemin(s)"
           NOTE="${NOTE} (bench/lima/run-phases.sh <chemin>) et committer le run. Refermer ensuite."
           BODY=$(printf '%s\n\n%s' "$SUMMARY" "$NOTE")
-          # Filet de sécurité : crée le label s'il manque (idempotent), sinon le
-          # premier run sur un dépôt neuf échouerait au --label.
-          gh label create "$LABEL" --color FBCA04 \
-            --description "Rappel auto de fraîcheur des preuves de banc — une seule à la fois" \
-            --repo "$GITHUB_REPOSITORY" 2>/dev/null || true
-          # Recherche EXACTE par label (pas par titre) → au plus une issue ouverte.
-          EXISTING=$(gh issue list --state open --label "$LABEL" --json number --jq '.[0].number // empty' --repo "$GITHUB_REPOSITORY")
-          if [ -n "$EXISTING" ]; then
-            echo "Issue de rappel #$EXISTING déjà ouverte → commentaire (pas de doublon)."
-            gh issue comment "$EXISTING" --body "$BODY" --repo "$GITHUB_REPOSITORY"
+          if [ "$GITHUB_SERVER_URL" = "https://github.com" ]; then
+            # Filet de sécurité : crée le label s'il manque (idempotent), sinon le
+            # premier run sur un dépôt neuf échouerait au --label.
+            gh label create "$LABEL" --color FBCA04 \
+              --description "Rappel auto de fraîcheur des preuves de banc — une seule à la fois" \
+              --repo "$GITHUB_REPOSITORY" 2>/dev/null || true
+            # Recherche EXACTE par label (pas par titre) → au plus une issue ouverte.
+            EXISTING=$(gh issue list --state open --label "$LABEL" --json number --jq '.[0].number // empty' --repo "$GITHUB_REPOSITORY")
+            if [ -n "$EXISTING" ]; then
+              echo "Issue de rappel #$EXISTING déjà ouverte → commentaire (pas de doublon)."
+              gh issue comment "$EXISTING" --body "$BODY" --repo "$GITHUB_REPOSITORY"
+            else
+              echo "Aucune issue de rappel ouverte → création."
+              gh issue create --title "$TITLE" --body "$BODY" --label "$LABEL" --repo "$GITHUB_REPOSITORY"
+            fi
           else
-            echo "Aucune issue de rappel ouverte → création."
-            gh issue create --title "$TITLE" --body "$BODY" --label "$LABEL" --repo "$GITHUB_REPOSITORY"
+            API="$GITHUB_SERVER_URL/api/v1/repos/$GITHUB_REPOSITORY"
+            AUTH="Authorization: token ${GITEA_TOKEN}"
+            DESC="Rappel auto de fraîcheur des preuves de banc — une seule à la fois"
+            JSON=$(python3 -c 'import json,sys; print(json.dumps({"name": sys.argv[1], "color": "FBCA04", "description": sys.argv[2]}))' "$LABEL" "$DESC")
+            curl -sS -X POST -H "$AUTH" -H 'Content-Type: application/json' \
+              -d "$JSON" "$API/labels" >/dev/null || true
+            EXISTING=$(curl -sS -H "$AUTH" "$API/issues?state=open&labels=$LABEL" \
+              | python3 -c 'import sys,json; d=json.load(sys.stdin); print(d[0]["number"] if d else "")')
+            if [ -n "$EXISTING" ]; then
+              echo "Issue de rappel #$EXISTING déjà ouverte → commentaire (pas de doublon)."
+              JSON=$(python3 -c 'import json,sys; print(json.dumps({"body": sys.argv[1]}))' "$BODY")
+              curl -sS -X POST -H "$AUTH" -H 'Content-Type: application/json' \
+                -d "$JSON" "$API/issues/$EXISTING/comments" >/dev/null
+            else
+              echo "Aucune issue de rappel ouverte → création."
+              JSON=$(python3 -c 'import json,sys; print(json.dumps({"title": sys.argv[1], "body": sys.argv[2]}))' "$TITLE" "$BODY")
+              curl -sS -X POST -H "$AUTH" -H 'Content-Type: application/json' \
+                -d "$JSON" "$API/issues" >/dev/null
+            fi
           fi
 
       - name: Matérialiser le verdict (visible, non bloquant pour les PR)

@@ -131,10 +131,11 @@ pnpm lint:k8s       # valide les manifests via kubeconform
 pnpm lint:ansible   # lint les playbooks Ansible
 ```
 
-> **Release** : automatisée par
-> [release-please](https://github.com/googleapis/release-please) (cron quotidien
-> → PR `chore(main): release vX.Y.Z`). Rien à lancer en local ; merger la PR de
-> release publie la version.
+> **Release** : la publication automatisée GitHub (release-please, signature
+> cosign keyless, provenance SLSA) a été retirée — elle était 100 %
+> GitHub-specific (ADR 0115). Le versionnement de `main` reste gouverné par les
+> Conventional Commits (commitlint) ; la version courante vit dans
+> `package.json` + `CHANGELOG.md` (historique conservé, ADR 0023).
 
 ## Workflow de PR
 
@@ -157,8 +158,8 @@ préserver l'historique fin de chaque PR sur `main`
 
 - **Chaque commit d'une PR doit être propre** : la CI valide **commitlint sur
   toute la plage** de la PR (pas seulement le titre), car chaque commit arrive
-  tel quel sur `main` (et alimente release-please / le `CHANGELOG`). Soigner et
-  regrouper ses commits **avant** le merge.
+  tel quel sur `main` (et alimente le `CHANGELOG`). Soigner et regrouper ses
+  commits **avant** le merge.
 - **Conventional Commits** : sujet en minuscule, sans email / sans
   `Co-Authored-By`, corps ≤ 100 colonnes.
 - **1 PR = 1 type/scope cohérent** : mélanger deux capacités indépendantes dans
@@ -202,28 +203,18 @@ avant de toucher les serveurs (seul banc local,
 
 Résultats du dernier banc : [`bench/RESULTS.md`](/nestor/bench/RESULTS/).
 
-## Versionnement (release-please)
+## Versionnement
 
-Le versionnement est **automatique** via le workflow
-[`.github/workflows/release.yml`](https://github.com/chasset/nestor/blob/main/.github/workflows/release.yml)
-qui utilise [release-please](https://github.com/googleapis/release-please).
+Le versionnement de `main` est gouverné par les **Conventional Commits** : le
+type et le scope de chaque commit déterminent le prochain semver (`feat:` →
+minor, `fix:`/`perf:` → patch, `feat!:` ou `BREAKING CHANGE:` → major), validé
+par commitlint (hook + CI). La version courante est portée par `package.json` +
+`CHANGELOG.md` (Keep a Changelog, historique conservé — ADR 0023).
 
-À chaque push sur `main`, release-please :
-
-1. Parcourt les commits depuis le dernier tag ;
-2. Calcule le prochain semver à partir des préfixes Conventional Commits
-   (`feat:` → minor, `fix:`/`perf:` → patch, `feat!:` ou `BREAKING CHANGE:` →
-   major) ;
-3. Crée (ou met à jour) une **PR de release** intitulée `chore(release): vX.Y.Z`
-   qui contient :
-   - bump de `package.json` ;
-   - mise à jour du `CHANGELOG.md` ;
-   - mise à jour du `.release-please-manifest.json`.
-
-Quand vous mergez cette PR, release-please pousse le tag `vX.Y.Z` et crée une
-[GitHub Release](https://github.com/chasset/nestor/releases) avec le changelog
-généré. Aucun bump manuel à faire — **release-please est la source unique** (le
-bump local `commit-and-tag-version` a été retiré).
+La publication automatisée (PR + tag + Release GitHub via release-please, et sa
+signature cosign keyless OIDC + provenance SLSA) a été **retirée** au portage
+Gitea : elle dépendait de primitives 100 % GitHub (Releases, PR, OIDC,
+générateur SLSA) qu'une forge Gitea n'offre pas (ADR 0115).
 
 ## Code de conduite
 
