@@ -186,6 +186,10 @@ jobs:
   # bloquant n'est PAS souhaité : on veut casser tôt sur une régression de
   # portabilité réelle.
   portability-macos:
+    # Runner macOS inexistant sur Gitea Actions (runner in-cluster Linux, ADR 0112) :
+    # ce job ne tourne que sur GitHub (détection via GITHUB_SERVER_URL, posé par les
+    # deux forges). La portabilité macOS reste testée par les runs GitHub.
+    if: env.GITHUB_SERVER_URL == 'https://github.com'
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
@@ -282,6 +286,9 @@ jobs:
             --report-format sarif --report-path gitleaks.sarif \
             --exit-code 0
       - name: Archiver le rapport
+        # Gitea ne stocke pas les artefacts d'Actions : upload réservé à GitHub
+        # (sur Gitea le rapport reste consultable dans le log du run).
+        if: env.GITHUB_SERVER_URL == 'https://github.com'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: gitleaks-report

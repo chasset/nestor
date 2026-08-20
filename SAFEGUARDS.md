@@ -77,9 +77,8 @@ Configurée côté GitHub (non versionnable, documentée ici pour mémoire) :
 - **`strict: true`** : la branche doit être **à jour avec `main`** (checks
   rejoués sur le dernier état) avant merge.
 - **Résolution des conversations requise**.
-- **0 review requise** : choix assumé pour un repo **mono-mainteneur** — exiger
-  une approbation bloquerait l'auto-merge des PR de release (cf. release-please
-  ci-dessous : aucun second relecteur disponible).
+- **0 review requise** : choix assumé pour un repo **mono-mainteneur** — aucun
+  second relecteur disponible pour approuver les PR.
 
 > Vérifier / réappliquer :
 > `gh api repos/chasset/nestor/branches/main/protection`.
@@ -87,54 +86,18 @@ Configurée côté GitHub (non versionnable, documentée ici pour mémoire) :
 [`.github/workflows/docs.yml`](https://github.com/chasset/nestor/blob/main/.github/workflows/docs.yml)
 :
 
-- À chaque PR : `pnpm docs:build` (validation — pas de dead link, base path
-  correct).
-- À chaque push sur `main` : build + déploiement sur
-  [GitHub Pages](https://chasset.github.io/nestor/).
+- À chaque PR **et** à chaque push sur `main` : `pnpm docs:build` (validation —
+  pas de dead link, base path correct). La publication sur GitHub Pages
+  (`deploy-pages`, spécifique GitHub) a été retirée au portage Gitea (ADR 0115)
+  : la doc reste consultable via le site Astro construit par le workflow.
 
 [`.github/workflows/release.yml`](https://github.com/chasset/nestor/blob/main/.github/workflows/release.yml)
-:
-
-- À chaque push sur `main` :
-  [release-please](https://github.com/googleapis/release-please) ouvre (ou met à
-  jour) une PR de release qui bumpe `package.json` et `CHANGELOG.md` d'après les
-  Conventional Commits. **L'auto-merge est activé sur cette PR dès sa création**
-  : GitHub la fusionne automatiquement quand les checks requis sont verts, ce
-  qui pousse le tag `vX.Y.Z` et publie une
-  [GitHub Release](https://github.com/chasset/nestor/releases). → Publication
-  **100 % automatique** ; aucune version flottante en main, chaque tag lié à un
-  set de commits validé par la CI.
-
-> ✅ **Token : PAT fine-grained (`RELEASE_PLEASE_TOKEN`).** Le `GITHUB_TOKEN` ne
-> **redéclenche pas les workflows** : sans ce PAT, la CI ne tournerait pas sur
-> la PR de release et l'auto-merge resterait bloqué en attente de checks qui ne
-> tournent jamais. On utilise donc un **PAT fine-grained** (scope = ce repo,
-> `Contents: RW` + `Pull requests: RW`) déposé en secret `RELEASE_PLEASE_TOKEN`
-> et injecté via `with: token:` dans `release.yml`. Il débloque tag + release
-> **et** redéclenche la CI sur la PR de release — comme un push normal. Réglage
-> repo associé : `allow_auto_merge=true`.
->
-> ⚠️ **Rotation** : un PAT expire. À renouveler avant échéance (même scope, même
-> nom de secret), sinon les releases se rebloquent silencieusement.
->
-> 🛟 **Filet de sécurité — symptôme d'un token absent/expiré** : la PR de
-> release n'aboutit plus, et faute de tag publié release-please **re-propose une
-> version toujours plus haute à chaque push** (boucle observée le 2026-05-29 :
-> `2.0.0` jamais taguée → `3.0.0` reproposée). **Rattrapage manuel** (le contenu
-> de `main` est déjà bon : `package.json`, `.release-please-manifest.json` et
-> `CHANGELOG.md` portent la bonne version) :
->
-> ```bash
-> # 1. Publier le tag + la release sur le HEAD de main
-> gh release create vX.Y.Z --target "$(git rev-parse origin/main)" --title vX.Y.Z \
->   --notes-file <(git show origin/main:CHANGELOG.md \
->     | awk '/^## \[X\.Y\.Z\]/{f=1} /^## \[<version-précédente>\]/{f=0} f')
-> # 2. Supprimer la branche release-please parasite (via API : le hook pre-push
-> #    no-direct-push-to-main bloque un `git push --delete`)
-> gh api -X DELETE repos/chasset/nestor/git/refs/heads/release-please--branches--main--components--nestor
-> # 3. Vérifier qu'un run propre ne repropose plus rien
-> gh workflow run release.yml && gh run list --workflow release.yml -L 1
-> ```
+: **supprimé** — la chaîne de publication automatisée (release-please + GitHub
+Release + signature cosign keyless OIDC + provenance SLSA) était **100 %
+GitHub-specific** (Releases, PR, OIDC GitHub, générateur SLSA GitHub) : Gitea
+n'en supporte aucun pan (ADR 0115). Le versionnement de `main` reste gouverné
+par les Conventional Commits (commitlint) ; la version courante est portée par
+`package.json` + `CHANGELOG.md` (historique conservé, ADR 0023).
 
 ## Banc d'essai Lima
 

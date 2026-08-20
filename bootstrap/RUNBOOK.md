@@ -816,33 +816,14 @@ le banc avant la prod.**
 
 ### Vérifier une release signée (cosign / SLSA — ADR 0088)
 
-Si vous installez à partir d'une **version figée** (et non du HEAD), chaque
-release publie une archive source signée — vérifiez son **intégrité** et sa
-**provenance** avant usage. Les assets de la release (onglet _Releases_) :
-`nestor-<TAG>.tar.gz`, sa signature `.sig` + son certificat `.pem` (cosign), et
-l'attestation de provenance `*.intoto.jsonl` (SLSA). Signature **keyless** :
-aucune clé publique à récupérer, l'identité est le workflow GitHub lui-même.
-
-```bash
-TAG=v2.38.0   # la version visée
-gh release download "$TAG" --repo chasset/nestor   # archive + .sig + .pem + provenance
-
-# 1. Intégrité + identité du signataire (cosign keyless) :
-cosign verify-blob \
-  --certificate "nestor-${TAG}.pem" \
-  --signature   "nestor-${TAG}.tar.gz.sig" \
-  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-  --certificate-identity-regexp '^https://github.com/chasset/nestor/\.github/workflows/release\.yml@.*' \
-  "nestor-${TAG}.tar.gz"
-
-# 2. Provenance SLSA (l'archive vient bien de CE dépôt, à CE commit) :
-slsa-verifier verify-artifact "nestor-${TAG}.tar.gz" \
-  --provenance-path *.intoto.jsonl \
-  --source-uri github.com/chasset/nestor
-```
-
-Une vérification qui échoue (signature invalide, identité inattendue, source
-divergente) = **archive non fiable** : ne pas l'utiliser. La signature ne vit
-**que** dans le code versionné
-([`.github/workflows/release.yml`](https://github.com/chasset/nestor/blob/main/.github/workflows/release.yml)),
-re-prouvée à chaque release — pas d'étape manuelle (ADR 0088).
+**Périmé depuis le portage Gitea (ADR 0115) :** la chaîne de publication GitHub
+automatisée (release-please → GitHub Release → archive source **signée cosign
+keyless OIDC** + **provenance SLSA**) a été **retirée** — elle dépendait de
+primitives 100 % GitHub (Releases, OIDC GitHub, générateur SLSA) qu'une forge
+Gitea n'offre pas. La vérification cosign/SLSA ci-dessous n'a donc **plus de
+cible** : il n'existe plus de release signée à vérifier. Pour une installation à
+partir d'une version figée, vérifiez l'**intégrité** de l'archive (`sha256sum`)
+et sa **provenance git** (tag/commit) par les moyens habituels ; les références
+historiques de la chaîne retirée restent dans
+[ADR 0088](/nestor/docs/decisions/0088-signature-releases-cosign-slsa/) et
+[ADR 0115](/nestor/docs/decisions/0115-retrait-pipeline-github-release-portage-gitea/).

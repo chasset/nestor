@@ -1,7 +1,5 @@
 # nestor
 
-[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/chasset/nestor/badge)](https://scorecard.dev/viewer/?uri=github.com/chasset/nestor)
-
 > Un cluster Kubernetes de recherche hyperconvergé — installation, stockage
 > distribué, chaîne DataOps et services transverses, racontés de bout en bout.
 >
@@ -429,33 +427,30 @@ opérationnel complet est dans [SAFEGUARDS.md](SAFEGUARDS.md).
   avec `exit-code 1` (**bloque le merge**) ; le RBAC inhérent aux bundles
   upstream est allowlisté **par chemin et avec justification** dans
   [`.trivyignore.yaml`](.trivyignore.yaml).
-- **SAST** : **CodeQL** (requêtes `security-and-quality`) sur le périmètre
-  Python du harnais (`nestor/`, `scripts/`) —
-  [.github/workflows/codeql.yml](.github/workflows/codeql.yml).
+- **SAST** : la SAST CodeQL (GitHub-specific : onglet Security, GHAS) a été
+  retirée au portage Gitea (ADR 0115). Le périmètre reste couvert par trivy
+  (IaC), ruff (Python) et shellcheck (shell).
 - **Secret scanning** : `gitleaks` balaie **tout l'historique git** (mode
   `git`), binaire **épinglé par version + SHA-256**, allowlist limitée aux
   valeurs d'exemple dans [`.gitleaks.toml`](.gitleaks.toml) ; en complément,
   secrets jamais versionnés (`.env`, `secrets/`, snapshots etcd sous
   `.gitignore`).
 - **Supply-chain épinglée** : **toutes** les actions GitHub sont épinglées par
-  **SHA de commit** (une seule exception documentée — le générateur SLSA exige
-  un tag), et les images conteneurs par **digest d'index multi-arch**, jamais
-  par tag mouvant
+  **SHA de commit**, et les images conteneurs par **digest d'index multi-arch**,
+  jamais par tag mouvant
   ([ADR 0006](docs/decisions/0006-matrice-de-versions-et-politique-de-bump.md)).
-- **Releases signées** : chaque release publie une archive source **signée
-  cosign _keyless_** (OIDC, aucune clé à gérer) + une **provenance SLSA**
-  (`.intoto.jsonl`) liant l'artefact au commit/workflow
-  ([ADR 0088](docs/decisions/0088-signature-releases-cosign-slsa.md),
-  [.github/workflows/release.yml](.github/workflows/release.yml)).
+- **Releases signées** : la chaîne de publication GitHub (release-please,
+  signature cosign keyless OIDC, provenance SLSA) a été **retirée** — elle
+  dépendait de primitives 100 % GitHub (Releases, OIDC, générateur SLSA) qu'une
+  forge Gitea n'offre pas
+  ([ADR 0115](docs/decisions/0115-retrait-pipeline-github-release-portage-gitea.md)).
 - **Least privilege CI** : `permissions:` restreintes au strict nécessaire (top
-  level en lecture, élargi par job), `persist-credentials: false`, et **PAT
-  fine-grained** dédiés (scope = ce repo) pour les rares gestes en écriture
-  (release-please, Scorecard branch-protection).
-- **Posture supply-chain notée** : **OpenSSF Scorecard** recalculé en continu +
-  **OpenSSF Best Practices Badge** validé par questionnaire — voir
-  [Conformité](#conformité). _Non bloquants (modèle « alerte », pas « gate »)
-  aujourd'hui : CodeQL, gitleaks et Scorecard remontent dans l'onglet Security ;
-  seul `trivy` gate le merge — cf._ [SAFEGUARDS.md](SAFEGUARDS.md).
+  level en lecture, élargi par job), `persist-credentials: false`.
+- **Posture supply-chain notée** : **OpenSSF Best Practices Badge** validé par
+  questionnaire — voir [Conformité](#conformité). Le badge/score Scorecard
+  (API + onglet Security GitHub) a été retiré au portage Gitea (ADR 0115). _Non
+  bloquant aujourd'hui : gitleaks remonte dans le log du run ; seul `trivy` gate
+  le merge — cf._ [SAFEGUARDS.md](SAFEGUARDS.md).
 
 #### Plan de contrôle Kubernetes ([ADR 0014](docs/decisions/0014-durcissement-kubeadm-init.md))
 
@@ -553,7 +548,7 @@ juger en 5 min : [docs/preuves.md](docs/preuves.md).
 <!-- Puces d'un seul tenant : le garde-fou `lint:stats` compare puce par puce ;
      un wrap prettier (proseWrap 80) casserait la comparaison. Exclu de prettier. -->
 
-- **114 ADR** (97 Accepted, 12 Proposed, 5 Superseded)
+- **115 ADR** (98 Accepted, 12 Proposed, 5 Superseded)
 - **18 plans** vivants (1 Abandonné, 7 Achevé, 8 Actif, 1 Brouillon, 1 Superseded)
 - **100 drifts** indexés (3 caduc, 94 corrige, 1 en-cours, 2 ouvert)
 - **35 scénarios** E2E reproductibles
@@ -637,12 +632,12 @@ La documentation est publiée sur
 ## Conformité
 
 Les badges ne sont pas décoratifs : chacun reflète un état **vrai et
-vérifiable** (recalculé en continu, ou fait stable). Le plus structurant —
-[OpenSSF Scorecard](https://scorecard.dev/viewer/?uri=github.com/chasset/nestor),
-santé supply-chain notée /10 — est mis en avant **sous le titre**, seul.
-Regroupés ci-dessous par famille, les autres disent **quelles familles de
-qualité le dépôt revendique** — un badge n'est posé que s'il est honnête
-([ADR 0080](docs/decisions/0080-notations-et-badges-readme.md)).
+vérifiable** (recalculé en continu, ou fait stable). Regroupés ci-dessous par
+famille, ils disent **quelles familles de qualité le dépôt revendique** — un
+badge n'est posé que s'il est honnête
+([ADR 0080](docs/decisions/0080-notations-et-badges-readme.md)). Le badge
+OpenSSF Scorecard a été retiré au portage Gitea : son alimentation (API + onglet
+Security GitHub) est 100 % GitHub-specific (ADR 0115).
 
 ### Identité & licence
 
@@ -657,9 +652,10 @@ version pour la citation académique, et le code est sous licence **MIT**
 
 L'historique est **lisible et outillé**, pas seulement par discipline. Chaque
 message de commit suit **Conventional Commits** (validé par commitlint sur toute
-la plage d'une PR), les versions suivent **SemVer** (bump dérivé des commits par
-release-please), et le **CHANGELOG** est tenu au format _Keep a Changelog_,
-généré automatiquement à chaque release.
+la plage d'une PR), les versions suivent **SemVer** (bump dérivé des commits),
+et le **CHANGELOG** est tenu au format _Keep a Changelog_ (historique conservé —
+ADR 0023). La publication automatisée GitHub (release-please + signature
+cosign + provenance SLSA) a été retirée au portage Gitea (ADR 0115).
 
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg)](https://www.conventionalcommits.org)
 [![SemVer](https://img.shields.io/badge/SemVer-2.0.0-blue.svg)](https://semver.org)
@@ -668,24 +664,23 @@ généré automatiquement à chaque release.
 ### Qualité & CI
 
 Aucune régression n'atteint `main` sans passer les contrôles : chaque PR doit
-satisfaire **12 checks requis** (formats, lint, `kubeconform`, `ansible-lint`,
+satisfaire les **checks requis** (formats, lint, `kubeconform`, `ansible-lint`,
 `trivy`, `jscpd`, tests…) avant merge. Le badge **CI** reflète l'état réel du
-workflow `ci.yml` sur `main` ; l'analyse de sécurité **CodeQL** (SAST) s'exécute
-sur le périmètre Python du dépôt. Détail des garde-fous : section
+workflow `ci.yml` sur `main`. L'analyse CodeQL (SAST) a été retirée au portage
+Gitea (ADR 0115). Détail des garde-fous : section
 [« Qualité — garde-fous en place »](#qualité--garde-fous-en-place) ci-dessus et
 [SAFEGUARDS.md](SAFEGUARDS.md).
 
 [![CI](https://github.com/chasset/nestor/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/chasset/nestor/actions/workflows/ci.yml)
-[![CodeQL](https://github.com/chasset/nestor/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/chasset/nestor/actions/workflows/codeql.yml)
 
 ### Sécurité & supply-chain
 
-Au-delà du score Scorecard (en tête), le dépôt vise les **bonnes pratiques OSS**
-de l'OpenSSF : le **Best Practices Badge** atteste, après questionnaire **validé
-par l'OpenSSF** (et non auto-déclaré à vide), la couverture des critères de
-santé projet — change control, tests, rapport de vulnérabilités, analyse
-statique ([ADR 0080](docs/decisions/0080-notations-et-badges-readme.md)). Détail
-des réponses :
+Le dépôt vise les **bonnes pratiques OSS** de l'OpenSSF : le **Best Practices
+Badge** atteste, après questionnaire **validé par l'OpenSSF** (et non
+auto-déclaré à vide), la couverture des critères de santé projet — change
+control, tests, rapport de vulnérabilités, analyse statique
+([ADR 0080](docs/decisions/0080-notations-et-badges-readme.md)). Détail des
+réponses :
 [answer-sheet](docs/audit/2026-06-22-best-practices-badge-answer-sheet.md).
 
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/13301/badge)](https://www.bestpractices.dev/projects/13301)
