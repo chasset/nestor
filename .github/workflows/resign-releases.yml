@@ -8,7 +8,7 @@ name: Resign Releases
 # les Releases existent déjà, on n'ajoute que les artefacts de vérification (ADR 0087/0088).
 #
 # La signature keyless s'appuie sur l'identité OIDC du runner GitHub Actions (certificat
-# identity = https://github.com/univ-lehavre/cluster/...), reproduisant à l'identique le
+# identity = https://github.com/chasset/nestor/...), reproduisant à l'identique le
 # contrat de vérification du workflow Release — ce qu'un run local ne pourrait pas faire
 # (il porterait l'identité personnelle du mainteneur).
 #
@@ -62,11 +62,11 @@ jobs:
           set -euo pipefail
           for tag in $TAGS; do
             echo "::group::Resigning ${tag}"
-            NAME="cluster-${tag}.tar.gz"
+            NAME="nestor-${tag}.tar.gz"
             # Archive du code AU TAG (déterministe, sans .git) — même NAME/prefix que
             # sign-release, donc les 3 assets attachés sont ceux qu'aurait produits la
             # release (archive + .sig + .pem ; pas de .sha256, parité sign-release).
-            git archive --format=tar.gz --prefix="cluster-${tag}/" -o "$NAME" "$tag"
+            git archive --format=tar.gz --prefix="nestor-${tag}/" -o "$NAME" "$tag"
             cosign sign-blob \
               --output-signature "${NAME}.sig" \
               --output-certificate "${NAME}.pem" \

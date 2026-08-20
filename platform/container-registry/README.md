@@ -9,9 +9,9 @@ par défaut (`rook-ceph-block-replicated`, réplicat ×3).
 
 - **HTTP sans TLS et sans authentification** : la sécurité de l'accès est
   déléguée au contrôle d'accès au Service (réseau cluster, port-forward). Voir
-  [`docs/decisions/0011-registry-http-sans-auth.md`](/cluster/docs/decisions/0011-registry-http-sans-auth/)
+  [`docs/decisions/0011-registry-http-sans-auth.md`](/nestor/docs/decisions/0011-registry-http-sans-auth/)
   (cohérent avec
-  [`0003-pas-de-chiffrement-ceph-tailscale.md`](/cluster/docs/decisions/0003-pas-de-chiffrement-ceph-tailscale/)).
+  [`0003-pas-de-chiffrement-ceph-tailscale.md`](/nestor/docs/decisions/0003-pas-de-chiffrement-ceph-tailscale/)).
 - **`replicas: 1` (SPOF applicatif)** : RBD = `ReadWriteOnce`, donc pas de
   scale-out simple ; suffisant pour un usage recherche. HA réelle = passer sur
   CephFS (`ReadWriteMany`).
@@ -66,7 +66,7 @@ Depuis un nœud du cluster, le registry est directement résolvable comme
 manifest). Sans GC, ces blobs s'accumulent à chaque retag/écrasement.
 
 Le CronJob
-[`garbage-collect-cronjob.yaml`](https://github.com/univ-lehavre/cluster/blob/main/platform/container-registry/garbage-collect-cronjob.yaml)
+[`garbage-collect-cronjob.yaml`](https://github.com/chasset/nestor/blob/main/platform/container-registry/garbage-collect-cronjob.yaml)
 est livré **suspendu** ; à activer une fois la validation banc faite :
 
 ```bash

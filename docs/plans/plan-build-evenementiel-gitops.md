@@ -194,7 +194,7 @@ dans le repo Gitea pour que le déploiement référence
   seulement sur l'entrée `citation`) écrit ce digest dans Gitea via la
   **Contents API** (create-or-update **idempotent**), en réutilisant le patron
   `push_gitea_file` de
-  [`bench/lima/gitea-init.sh`](https://github.com/univ-lehavre/cluster/blob/b522133b7cea/bench/lima/gitea-init.sh)
+  [`bench/lima/gitea-init.sh`](https://github.com/chasset/nestor/blob/b522133b7cea/bench/lima/gitea-init.sh)
   (lit le `sha` existant pour une MAJ, **vérifie** la présence de `"commit"`
   dans la réponse). En Ansible, l'équivalent est `kubernetes.core.k8s_exec` du
   pod gitea + `curl` localhost:3000 (piège DNS FQDN : **jamais** le FQDN

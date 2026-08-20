@@ -1,11 +1,11 @@
 {
-  "name": "cluster",
+  "name": "nestor",
   "private": true,
   "version": "2.57.0",
   "description": "Kubernetes cluster manifests, playbooks and runbooks",
   "author": {
     "name": "Pierre-Olivier Chasset",
-    "email": "pierre-olivier.chasset@univ-lehavre.fr"
+    "email": "1488688+chasset@users.noreply.github.com"
   },
   "license": "MIT",
   "packageManager": "pnpm@11.3.0",

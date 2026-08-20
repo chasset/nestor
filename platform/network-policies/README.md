@@ -4,7 +4,7 @@
 (`default` = WordPress/MySQL, `rstudio`, `registry`). **Durcissement
 defense-in-depth**, pas une correction de faille : l'absence de NetworkPolicy
 était un compromis assumé du mono-tenant
-([ADR 0012](/cluster/docs/decisions/0012-rstudio-disable-auth/)). Ces policies
+([ADR 0012](/nestor/docs/decisions/0012-rstudio-disable-auth/)). Ces policies
 posent une barrière est-ouest pour qu'un pod compromis ne puisse pas balayer
 librement le cluster.
 
@@ -57,9 +57,9 @@ Deux policies seulement ouvrent un egress vers `0.0.0.0/0`, et **restreint par
 ports** (jamais en grand) : `argocd/allow-egress.yaml` (repo-server → git,
 443/22/80…) et `dagster/allow-internet-egress.yaml` (run workers → store objet
 public pour le sync d'un snapshot de données ouvert, 443/80 — cf.
-[issue #256](https://github.com/univ-lehavre/cluster/issues/256)). On **ne
-filtre pas par plages IP** du fournisseur : sous Cilium un `ipBlock` exclut déjà
-les entités réservées/pods du cluster, et les plages publiques (AWS
+[issue #256](https://github.com/univ-lehavre/nestor/issues/256)). On **ne filtre
+pas par plages IP** du fournisseur : sous Cilium un `ipBlock` exclut déjà les
+entités réservées/pods du cluster, et les plages publiques (AWS
 `ip-ranges.json`) ont un churn régulier — la borne, ce sont les ports.
 
 ## Application
@@ -73,7 +73,7 @@ kubectl apply -f platform/network-policies/registry/
 
 ## Validation (banc multi-nœuds)
 
-À exécuter sur le banc Lima [`bench/lima/`](/cluster/bench/lima/) **avant la
+À exécuter sur le banc Lima [`bench/lima/`](/nestor/bench/lima/) **avant la
 prod** :
 
 - `kubectl get netpol -A` → les policies présentes par namespace.
@@ -85,8 +85,8 @@ prod** :
 - Le provisionnement/montage des PVC reste OK (preuve que Ceph n'est pas
   impacté).
 
-Cf. [SAFEGUARDS.md](/cluster/SAFEGUARDS/) — toute policy réseau passe par le
-banc avant la prod.
+Cf. [SAFEGUARDS.md](/nestor/SAFEGUARDS/) — toute policy réseau passe par le banc
+avant la prod.
 
 ### Résultat de validation (banc multi-node, 2026-06-01)
 

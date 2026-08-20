@@ -45,7 +45,7 @@ def _emit_openlineage(job_name: str) -> None:
         facets={"nominalTime": nominal_time_run.NominalTimeRunFacet(nominalStartTime=now)},
     )
     job = Job(namespace=_namespace(), name=job_name)
-    producer = "https://github.com/univ-lehavre/cluster/platform/dagster/image-openlineage"
+    producer = "https://github.com/chasset/nestor/platform/dagster/image-openlineage"
 
     for state in (RunState.START, RunState.COMPLETE):
         client.emit(

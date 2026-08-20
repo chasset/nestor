@@ -1,12 +1,12 @@
 # Résultats — banc multi-nœuds (historique, banc Vagrant déprécié)
 
 > **Banc Vagrant/VirtualBox déprécié**
-> ([ADR 0038](/cluster/docs/decisions/0038-lima-seul-banc-local/)) — son code
+> ([ADR 0038](/nestor/docs/decisions/0038-lima-seul-banc-local/)) — son code
 > (`test/multi-node/`, `test/single-node/`) a été supprimé ; ce journal est
 > **conservé en l'état** (honnêteté des Runs, ADR 0023). Les liens vers les
 > fichiers du banc sont donc en texte brut, et les identifiants réels d'un
 > déploiement ont été génériqués (ADR 0023). Journal du banc **courant** (Lima)
-> : [`lima/RESULTS.md`](/cluster/bench/lima/RESULTS/).
+> : [`lima/RESULTS.md`](/nestor/bench/lima/RESULTS/).
 >
 > Dernière exécution : **2026-05-28**, branche `chore/cluster-rebuild-debian13`,
 > banc `test/multi-node/` sur Mac Apple Silicon (M3 Max, 48 GiB) + VirtualBox
@@ -376,7 +376,7 @@ passe.
   était fausse. Le Run #2 avait d'ailleurs déjà observé `sd*` (cf. table
   topologie).
 - **À noter** : l'audit du 2026-05-29
-  ([02-tests.md](/cluster/docs/audit/2026-05-29/02-tests/)) avait le diagnostic
+  ([02-tests.md](/nestor/docs/audit/2026-05-29/02-tests/)) avait le diagnostic
   **à l'envers** — il qualifiait les commentaires `sd*` de vestige obsolète «
   contredit par le code VirtIO `vd*` ». C'est l'inverse : le code `vd*` était la
   régression, les commentaires `sd*` (et le drift 0b ligne 76, « `/dev/sde` »)
@@ -394,7 +394,7 @@ passe.
 
 - **Fichiers** :
   [`storage/ceph/storageClass/datalake/smoke-test.sh`](https://github.com/univ-lehavre/cluster/blob/main/storage/ceph/storageClass/datalake/smoke-test.sh),
-  [README datalake](/cluster/storage/ceph/storageClass/datalake/).
+  [README datalake](/nestor/storage/ceph/storageClass/datalake/).
 - **Symptôme** : gate Phase 5 `smoke-test datalake échoué`. En le déroulant à la
   main, deux échecs successifs et distincts :
   1. `Secret smoke pas créé` — l'OBC ne convergeait pas dans les 60 s.
@@ -474,7 +474,7 @@ passe.
 ## Suite de scénarios reproductibles
 
 Suivant les questions opérationnelles posées, une
-[suite de 8 scénarios](/cluster/bench/scenarios/) a été écrite — chacun
+[suite de 8 scénarios](/nestor/bench/scenarios/) a été écrite — chacun
 auto-documenté, idempotent, avec cleanup automatique :
 
 | #   | Scénario                        | Question opérationnelle adressée                   |
@@ -619,7 +619,7 @@ durci + couches actives → PASS. Le 13 a besoin de `SSH_OPTS`/`HOSTS` (pas
 Activation du chiffrement transparent **WireGuard** (pod-to-pod) et de
 **Hubble** (relay + CLI, sans UI) dans
 [`bootstrap/cni.sh`](https://github.com/univ-lehavre/cluster/blob/main/bootstrap/cni.sh)
-— [ADR 0019](/cluster/docs/decisions/0019-durcissement-reseau-cilium/). Banc
+— [ADR 0019](/nestor/docs/decisions/0019-durcissement-reseau-cilium/). Banc
 multi-node (3 nœuds, K8s 1.34.8, Cilium 1.19.4), kernel 6.12 (module `wireguard`
 présent).
 
@@ -789,7 +789,7 @@ sans objet en prod.
 > 🔑 **Rotation testée.** Le scénario 15 (`ROTATE=1`) déroule les 4 étapes de
 > rotation et prouve qu'un Secret témoin reste lisible **et** chiffré tout du
 > long, puis restaure l'état d'origine. Procédure manuelle documentée au
-> [bootstrap/RUNBOOK.md](/cluster/bootstrap/RUNBOOK/) (§ Rotation de la clé de
+> [bootstrap/RUNBOOK.md](/nestor/bootstrap/RUNBOOK/) (§ Rotation de la clé de
 > chiffrement etcd). Pas de KMS (choix ADR 0003) — rotation sur
 > événement/échéance.
 
@@ -835,7 +835,7 @@ Le pinning par digest (audit P11 #11, PR #53) fixe l'image à **une**
 architecture — amd64 (correct en prod x86_64). Sur le banc arm64, l'operator
 Rook crashe en boucle : `exec /usr/local/bin/rook: exec format error`. **Sans
 objet en prod.** **Surcharge banc** (`run-phases.sh`, fonction `undigest`) :
-retombe sur le **tag multi-arch** pour operator/cluster/toolbox côté banc
+retombe sur le **tag multi-arch** pour operator/nestor/toolbox côté banc
 UNIQUEMENT ; le livrable garde son digest amd64 intact (sécurité supply-chain
 prod préservée).
 

@@ -16,7 +16,7 @@
   ],
   "packages": {
     ".": {
-      "package-name": "cluster",
+      "package-name": "nestor",
       "extra-files": [{ "type": "generic", "path": "CITATION.cff" }]
     }
   }

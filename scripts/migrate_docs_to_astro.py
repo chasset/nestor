@@ -10,13 +10,13 @@ Transforme le contenu pour Astro Starlight en préservant les URL VitePress :
    (source unique, ADR 0023). Mais leurs LIENS sont réécrits sur place.
 
 2. Réécrit les liens Markdown dans TOUS les fichiers servis :
-   - lien `.md` vers une cible SERVIE par le site → URL absolue `/cluster/<url>`
+   - lien `.md` vers une cible SERVIE par le site → URL absolue `/nestor/<url>`
      (sans `.md`, avec trailing slash, casse VitePress préservée) ;
    - lien vers un fichier de CODE (.sh/.py/.yaml/roles/…, non servi) → URL GitHub
-     absolue `https://github.com/univ-lehavre/cluster/blob/main/<chemin>` ;
+     absolue `https://github.com/chasset/nestor/blob/main/<chemin>` ;
    - lien externe http(s) ou ancre pure (#...) → inchangé.
 
-Idempotent : relancer ne change rien (les liens déjà en /cluster/ ou github.com
+Idempotent : relancer ne change rien (les liens déjà en /nestor/ ou github.com
 sont reconnus et laissés tels quels). Le build `astro build` valide le résultat
 (starlight-links-validator bloquant).
 
@@ -36,8 +36,8 @@ import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-BASE = "/cluster"
-GH_BLOB = "https://github.com/univ-lehavre/cluster/blob/main"
+BASE = "/nestor"
+GH_BLOB = "https://github.com/chasset/nestor/blob/main"
 CONTENT_DOCS = REPO / "docs" / "src" / "content" / "docs"
 
 # Extensions considérées comme du CODE (non servi par le site → lien GitHub).
@@ -90,11 +90,11 @@ def url_for_served(repo_rel: str) -> str | None:
     """URL Starlight (avec base, sans .md, trailing slash) d'un .md servi, ou None.
 
     Reproduit le routage VitePress srcDir='..' :
-      docs/architecture/x.md       → /cluster/docs/architecture/x/
-      docs/decisions/README.md     → /cluster/docs/decisions/
-      storage/ceph/README.md       → /cluster/storage/ceph/
-      bootstrap/RUNBOOK.md         → /cluster/bootstrap/RUNBOOK/
-      SECURITY.md                  → /cluster/SECURITY/
+      docs/architecture/x.md       → /nestor/docs/architecture/x/
+      docs/decisions/README.md     → /nestor/docs/decisions/
+      storage/ceph/README.md       → /nestor/storage/ceph/
+      bootstrap/RUNBOOK.md         → /nestor/bootstrap/RUNBOOK/
+      SECURITY.md                  → /nestor/SECURITY/
     """
     if repo_rel == "README.md":
         return None  # racine, non servi
@@ -124,7 +124,7 @@ def resolve_target(raw: str, src_repo_rel: str, served: set[str]) -> str | None:
     """
     target = raw.strip()
     # ne pas toucher : externes, ancres pures, mailto, déjà migrés
-    if re.match(r"^(https?:|mailto:|#|/cluster/)", target):
+    if re.match(r"^(https?:|mailto:|#|/nestor/)", target):
         return None
     # séparer ancre / query
     frag = ""

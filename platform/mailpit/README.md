@@ -2,7 +2,7 @@
 
 **Puits SMTP + UI web** : destination mail de **test** de la plateforme. Capture
 les mails d'alerte (Alertmanager du
-[monitoring](/cluster/platform/kube-prometheus-stack/), et à terme la couche
+[monitoring](/nestor/platform/kube-prometheus-stack/), et à terme la couche
 durcissement hôte) pour **valider la chaîne d'alerting de bout en bout** sur le
 banc, sans relais externe.
 
@@ -25,7 +25,7 @@ kubectl -n mail rollout status deploy/mailpit
 ```
 
 **Exposition L4** (`NodePort`,
-[ADR 0092](/cluster/docs/decisions/0092-exposition-hostport-l4/)) : l'UI Mailpit
+[ADR 0092](/nestor/docs/decisions/0092-exposition-hostport-l4/)) : l'UI Mailpit
 s'atteint par `http://<IP-nœud>:<nodePort>` (port auto, observé par le portail),
 comme les autres UI de plateforme. Mailpit sert de **puits SMTP** : il capture
 les notifications d'Alertmanager (`smtp_smarthost mailpit.mail:1025`, #489) —
@@ -53,7 +53,7 @@ un **puits de test** :
   le smarthost d'Alertmanager vers un fournisseur SMTP externe (vendeur-neutre :
   Brevo, Mailgun, Amazon SES… `:587` + auth via Secret), config locale non
   versionnée
-  ([ADR 0023](/cluster/docs/decisions/0023-plateforme-exemple-generique/)). Dans
+  ([ADR 0023](/nestor/docs/decisions/0023-plateforme-exemple-generique/)). Dans
   ce cas Mailpit peut rester comme environnement de test.
 
 ## Accès depuis l'HÔTE (relais postfix du hardening, #131)
@@ -61,7 +61,7 @@ un **puits de test** :
 Le postfix des nœuds (alertes fail2ban/auditd/smartd) tourne **hors du réseau
 pods** : il ne peut joindre ni le Service ClusterIP `mailpit.mail.svc:1025` ni
 le DNS `*.svc.cluster.local`. D'où un **`hostPort: 1025`** sur le pod mailpit
-([ADR 0071](/cluster/docs/decisions/0071-exposition-gateway-hostnetwork/)) : le
+([ADR 0071](/nestor/docs/decisions/0071-exposition-gateway-hostnetwork/)) : le
 postfix, qui tourne **sur le nœud**, joint le SMTP sur `NodeIP:1025` — routé en
 eBPF par Cilium, **sans Service LoadBalancer ni LB-IPAM**.
 
@@ -80,7 +80,7 @@ ni LoadBalancer SMTP.
 ## Adaptations
 
 - Image épinglée par digest d'index multi-arch
-  ([ADR 0006](/cluster/docs/decisions/0006-matrice-de-versions-et-politique-de-bump/)).
+  ([ADR 0006](/nestor/docs/decisions/0006-matrice-de-versions-et-politique-de-bump/)).
 - Durci : `runAsNonRoot`, `readOnlyRootFilesystem` (base SQLite en `/tmp` via
   `emptyDir`), `drop ALL`, `seccompProfile: RuntimeDefault`.
 - Stockage **en mémoire/`/tmp`** (jetable) — aucun secret réel, jamais de vraies

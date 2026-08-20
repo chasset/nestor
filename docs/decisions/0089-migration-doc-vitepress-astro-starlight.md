@@ -9,7 +9,7 @@ Astro Starlight (`package.json` : `astro build`, `@astrojs/starlight` ;
 (Achevé).
 
 S'inspire de
-l'[ADR 0036 d'atlas](https://univ-lehavre.github.io/atlas/decisions/0036-migration-vitepress-astro-starlight/)
+l'[ADR 0036 d'atlas](https://chasset.github.io/atlas/decisions/0036-migration-vitepress-astro-starlight/)
 (même décision, même outil), **sans en reprendre le contexte** : le déclencheur
 de cluster est différent (cf. ci-dessous).
 
@@ -126,7 +126,7 @@ suppression de la dépendance. Le séquençage détaillé vit dans le plan.
 
 - [Plan de migration](../plans/plan-migration-astro-starlight.md) — séquençage
   en étapes prouvables.
-- [ADR 0036 atlas](https://univ-lehavre.github.io/atlas/decisions/0036-migration-vitepress-astro-starlight/)
+- [ADR 0036 atlas](https://chasset.github.io/atlas/decisions/0036-migration-vitepress-astro-starlight/)
   — la décision sœur (mêmes patterns : collection glob, Mermaid, Vue).
 - [ADR 0029](0029-markdown-atteignable-doc.md) — invariant « tout `.md`
   atteignable » que le validateur de liens Starlight reprendra.

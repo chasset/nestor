@@ -4,7 +4,7 @@ Installation, opération et désinstallation d'un cluster Ceph distribué via
 l'opérateur Rook 1.19 (Ceph Tentacle 20.2.1).
 
 > **Méthode nominale = Ansible** (ADR
-> [0049](/cluster/docs/decisions/0049-doctrine-choix-outil-par-action/) :
+> [0049](/nestor/docs/decisions/0049-doctrine-choix-outil-par-action/) :
 > déployer Ceph est une _convergence d'état durable_ → Ansible, comme tout le
 > reste du socle). Les rôles `platform-ceph-cluster` / `-storageclasses` /
 > `-datalake` appliquent les manifestes figés de ce dossier (SSA +
@@ -72,10 +72,10 @@ Et, en cas de rebuild :
 > précédent fait redémarrer les `ceph-mon` sur un ancien état (`fsid` divergent)
 > → ils refusent de démarrer et le `CephCluster` reste bloqué. Le wipe est
 > assuré par
-> [`cleanup.sh`](https://github.com/univ-lehavre/cluster/blob/main/storage/ceph/cleanup.sh)
+> [`cleanup.sh`](https://github.com/chasset/nestor/blob/main/storage/ceph/cleanup.sh)
 > (disques) et la réinstallation OS (`/var/lib/rook`, hébergé sur `/var`
 > reformaté — cf.
-> [`bootstrap/RUNBOOK.md` § Partitionnement](/cluster/bootstrap/RUNBOOK/)). Ne
+> [`bootstrap/RUNBOOK.md` § Partitionnement](/nestor/bootstrap/RUNBOOK/)). Ne
 > pas créer le cluster avant d'avoir **≥ 3 hôtes prêts** (le quorum `mon` et le
 > réplicat ×3 l'exigent).
 
@@ -129,11 +129,11 @@ ceph health detail      # alertes nearfull/backfillfull/full explicites
 
 **Capacité de ce cluster** : 4 nœuds × 12 HDD × 5,5 TiB ≈ **264 TiB brut**, soit
 ~**88 TiB utiles** en réplicat ×3 (cf.
-[ADR 0009](/cluster/docs/decisions/0009-pourquoi-4-noeuds/)).
+[ADR 0009](/nestor/docs/decisions/0009-pourquoi-4-noeuds/)).
 
 **Ajouter de la capacité** : remplacer un disque défaillant ou ajouter des HDD
 se fait à chaud — `useAllDevices: true`
-([cluster.yaml](https://github.com/univ-lehavre/cluster/blob/main/storage/ceph/cluster.yaml))
+([cluster.yaml](https://github.com/chasset/nestor/blob/main/storage/ceph/cluster.yaml))
 fait détecter et intégrer les nouveaux disques bruts par l'operator (la
 découverte automatique étant désactivée, cf. ADR : c'est le redéploiement du
 `CephCluster` qui les prend en compte). Après ajout, Ceph rééquilibre
@@ -141,7 +141,7 @@ découverte automatique étant désactivée, cf. ADR : c'est le redéploiement d
 
 **GC du registry** : le PVC `registry-pvc` ne se vide pas tout seul quand on
 supprime des tags. Le `CronJob` de garbage-collection
-([garbage-collect-cronjob.yaml](https://github.com/univ-lehavre/cluster/blob/main/platform/container-registry/garbage-collect-cronjob.yaml))
+([garbage-collect-cronjob.yaml](https://github.com/chasset/nestor/blob/main/platform/container-registry/garbage-collect-cronjob.yaml))
 récupère l'espace ; le déclencher manuellement si le PVC se remplit.
 
 ## Classes de stockage
@@ -177,7 +177,7 @@ kubectl apply -f storageClass/datalake/object-bucket-claim-example.yaml
 ```
 
 Voir
-[`storageClass/datalake/README.md`](/cluster/storage/ceph/storageClass/datalake/)
+[`storageClass/datalake/README.md`](/nestor/storage/ceph/storageClass/datalake/)
 pour le détail des claims et l'extraction des credentials.
 
 > ⚠️ **Comportement destructif** : le `CephObjectStore` est configuré avec
@@ -254,7 +254,7 @@ kubectl -n rook-ceph patch cephobjectstore datalake --type merge \
   -p '{"metadata":{"finalizers":null}}'
 ```
 
-Constaté sur banc (Run #7, cf. [bench/RESULTS.md](/cluster/bench/RESULTS/) #19).
+Constaté sur banc (Run #7, cf. [bench/RESULTS.md](/nestor/bench/RESULTS/) #19).
 
 ### Pools, storage classes, cluster
 
@@ -279,7 +279,7 @@ kubectl delete -n rook-ceph cephblockpool \
 > Adapter si seul un sous-ensemble a été appliqué. La SC objet
 > `rook-ceph-datalake` se retire séparément (cf. § Object store ci-dessus). Les
 > ressources `rook-ceph-block` / `rook-ceph-block-pool` du dossier
-> [`storageClass/examples/`](https://github.com/univ-lehavre/cluster/blob/main/storage/ceph/storageClass/examples)
+> [`storageClass/examples/`](https://github.com/chasset/nestor/blob/main/storage/ceph/storageClass/examples)
 > ne sont **pas** créées par ce RUNBOOK (réplicat ×1, démonstration uniquement).
 
 Détruire le cluster Ceph :
@@ -300,7 +300,7 @@ kubectl delete -f crds.yaml
 ```
 
 Enfin, supprimer les données sur les disques avec
-[`cleanup.sh`](https://github.com/univ-lehavre/cluster/blob/main/storage/ceph/cleanup.sh).
+[`cleanup.sh`](https://github.com/chasset/nestor/blob/main/storage/ceph/cleanup.sh).
 Vérifier sur tous les nœuds :
 
 ```bash

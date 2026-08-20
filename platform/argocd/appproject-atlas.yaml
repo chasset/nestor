@@ -27,8 +27,8 @@ spec:
   # versionnée — kustomize patch, sed/envsubst au déploiement, ou ré-apply d'une
   # variante locale). Ne jamais committer ici l'URL réelle d'un atlas.
   sourceRepos:
-    # Dépôt du socle cluster (exemple ; un déploiement peut le retirer).
-    - https://github.com/univ-lehavre/cluster.git
+    # Dépôt du socle nestor (exemple ; un déploiement peut le retirer).
+    - https://github.com/chasset/nestor.git
     # Forge Gitea intra-banc (air-gapped, ADR 0044) : URL d'exemple générique du
     # Service interne. Le déploiement atlas surcharge l'<org>/<repo> réel.
     # `/**` (et PAS `/*`) : le glob Argo CD `*` ne traverse PAS les `/` — `/*`

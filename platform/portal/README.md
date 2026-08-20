@@ -1,15 +1,15 @@
 # Portail d'accès aux UI
 
 **Vue unifiée des UI/endpoints de la plateforme** pour l'opérateur
-([ADR 0091](/cluster/docs/decisions/0091-portail-acces-ui/)) : qu'est-ce qui est
+([ADR 0091](/nestor/docs/decisions/0091-portail-acces-ui/)) : qu'est-ce qui est
 exposé, sur quel **port de nœud** (L4 NodePort,
-[ADR 0092](/cluster/docs/decisions/0092-exposition-hostport-l4/)), avec quelle
+[ADR 0092](/nestor/docs/decisions/0092-exposition-hostport-l4/)), avec quelle
 authentification, et **comment récupérer le credential** — sans jamais
 l'exposer.
 
 Serveur web **dynamique** servi _dans_ le cluster : il lit l'API k8s en live et
 la **croise avec le contrat**
-([`contract/endpoints.example.yaml`](/cluster/contract/)), rend une sidebar par
+([`contract/endpoints.example.yaml`](/nestor/contract/)), rend une sidebar par
 couche avec des **liens en nouvel onglet** (pas d'iframe : `X-Frame-Options`/CSP
 des UI l'interdisent). Chaque UI exposée pointe vers
 `http://<IP-nœud>:<nodePort>` — le `nodePort` n'est pas figé : k8s l'attribue et

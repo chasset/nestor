@@ -40,8 +40,8 @@ Précisions :
   **pas** réécrit — honnêteté des Runs.
 
 Détail et justification :
-[ADR 0023](/cluster/docs/decisions/0023-plateforme-exemple-generique/),
-[CONTRIBUTING.md](/cluster/CONTRIBUTING/).
+[ADR 0023](/nestor/docs/decisions/0023-plateforme-exemple-generique/),
+[CONTRIBUTING.md](/nestor/CONTRIBUTING/).
 
 ## Conventions générales
 
@@ -50,7 +50,7 @@ Détail et justification :
   **jamais** bypassés (`--no-verify`, `LEFTHOOK=0` interdits).
 - **Merge** : **merge commit** (PAS squash) — l'historique fin de chaque PR est
   préservé dans `main`
-  ([ADR 0037](/cluster/docs/decisions/0037-strategie-merge-commit/)). Donc
+  ([ADR 0037](/nestor/docs/decisions/0037-strategie-merge-commit/)). Donc
   **chaque commit** d'une PR doit être propre (la CI valide commitlint sur toute
   la plage, pas seulement le titre de PR) : soigner/regrouper ses commits avant
   le merge.
@@ -59,9 +59,9 @@ Détail et justification :
   mort) ; jobs CI séparés non couverts par `pnpm lint` : **markdownlint** et
   **trivy** — les reproduire localement avant de pousser.
 - **Banc : corriger le CODE, pas l'état** (ADR
-  [0046](/cluster/docs/decisions/0046-corriger-le-code-pas-l-etat/)/[0034](/cluster/docs/decisions/0034-validation-e2e-from-scratch/))
+  [0046](/nestor/docs/decisions/0046-corriger-le-code-pas-l-etat/)/[0034](/nestor/docs/decisions/0034-validation-e2e-from-scratch/))
   — déclinaison du principe-chapeau **reproductibilité des résultats**
-  ([ADR 0052](/cluster/docs/decisions/0052-reproductibilite-des-resultats/) : un
+  ([ADR 0052](/nestor/docs/decisions/0052-reproductibilite-des-resultats/) : un
   résultat n'a de valeur que reproductible depuis le code seul ; état complété à
   la main = preuve invalide ; idempotence prouvée par rejeu `changed=0`).
   `kubectl patch`/`apply` manuel = **diagnostic uniquement** ; tout correctif

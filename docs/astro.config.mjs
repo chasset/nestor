@@ -6,14 +6,14 @@ import mdx from '@astrojs/mdx'
 
 // Migration VitePress → Astro Starlight (ADR 0089). base URL, français et
 // editLink GitHub préservés à l'identique pour ne casser aucune URL entrante.
-// Publié sur https://univ-lehavre.github.io/cluster/ via docs.yml ; en dev local,
+// Publié sur https://chasset.github.io/nestor/ via docs.yml ; en dev local,
 // ASTRO_BASE peut être vide pour servir depuis /.
 export default defineConfig({
-  site: 'https://univ-lehavre.github.io',
-  base: process.env.ASTRO_BASE ?? '/cluster/',
+  site: 'https://chasset.github.io',
+  base: process.env.ASTRO_BASE ?? '/nestor/',
   integrations: [
     starlight({
-      title: 'Cluster',
+      title: 'nestor',
       // i18n monolingue : un seul locale `root` (PAS defaultLocale + locales.fr,
       // qui servirait les pages sous /fr/ → 404). Observé chez atlas (ADR 0036).
       locales: {
@@ -30,28 +30,26 @@ export default defineConfig({
           // exclut donc de la validation (leurs liens sortants restent validés,
           // eux, car les fichiers sources sont dans la collection `colocated`).
           exclude: [
-            '/cluster/apps/**',
-            '/cluster/bench/**',
-            '/cluster/bootstrap/**',
-            '/cluster/contract/**',
-            '/cluster/platform/**',
-            '/cluster/storage/**',
-            '/cluster/CLAUDE/',
-            '/cluster/CODE_OF_CONDUCT/',
-            '/cluster/CONTRIBUTING/',
-            '/cluster/SAFEGUARDS/',
-            '/cluster/SECURITY/',
+            '/nestor/apps/**',
+            '/nestor/bench/**',
+            '/nestor/bootstrap/**',
+            '/nestor/contract/**',
+            '/nestor/platform/**',
+            '/nestor/storage/**',
+            '/nestor/CLAUDE/',
+            '/nestor/CODE_OF_CONDUCT/',
+            '/nestor/CONTRIBUTING/',
+            '/nestor/SAFEGUARDS/',
+            '/nestor/SECURITY/',
           ],
         }),
       ],
-      social: [
-        { icon: 'github', label: 'GitHub', href: 'https://github.com/univ-lehavre/cluster' },
-      ],
+      social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/chasset/nestor' }],
       editLink: {
-        baseUrl: 'https://github.com/univ-lehavre/cluster/edit/main/',
+        baseUrl: 'https://github.com/chasset/nestor/edit/main/',
       },
       // Sidebar transcrite fidèlement de l'ancien config.mjs VitePress (12
-      // groupes). Les liens sont SANS le base /cluster/ : Starlight l'ajoute
+      // groupes). Les liens sont SANS le base /nestor/ : Starlight l'ajoute
       // automatiquement (à l'inverse des liens dans le contenu Markdown, qui
       // l'incluent). Trailing slash pour les pages (cohérent build Astro).
       sidebar: [

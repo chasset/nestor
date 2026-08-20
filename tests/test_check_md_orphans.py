@@ -117,9 +117,9 @@ class FindOrphans(unittest.TestCase):
         self.assertEqual(orphans, ["docs/index.md", "x.md"])
 
     def test_resolves_cluster_site_url(self):
-        # Lien réécrit en URL du site Astro (/cluster/...) → re-mappé à la source.
+        # Lien réécrit en URL du site Astro (/nestor/...) → re-mappé à la source.
         files = ["docs/index.md", "CODE_OF_CONDUCT.md"]
-        contents = {"docs/index.md": "voir [CoC](/cluster/CODE_OF_CONDUCT/)"}
+        contents = {"docs/index.md": "voir [CoC](/nestor/CODE_OF_CONDUCT/)"}
         orphans = find_orphans(files, ["/"], lambda p: contents.get(p, ""))
         self.assertEqual(orphans, [])
 

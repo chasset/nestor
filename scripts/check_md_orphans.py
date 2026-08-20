@@ -60,7 +60,7 @@ def resolve_md_link(target: str, from_dir: str, files: set[str]) -> str | None:
     """Résout un lien Markdown `](target)` vers un fichier source, ou None.
 
     Gère trois formes (post-migration Astro, ADR 0089) :
-    - URL absolue du site `/cluster/<x>/` (réécrite par migrate_docs_to_astro) →
+    - URL absolue du site `/nestor/<x>/` (réécrite par migrate_docs_to_astro) →
       re-mappée vers le fichier source ;
     - lien relatif `../x.md` (encore présent dans les fichiers non réécrits) ;
     - lien absolu `/x` historique. Les liens GitHub (https://github.com/...) et
@@ -69,9 +69,9 @@ def resolve_md_link(target: str, from_dir: str, files: set[str]) -> str | None:
     target = target.split()[0].split("#", 1)[0] if target.split() else ""
     if not target or target.startswith(("http://", "https://", "mailto:")):
         return None
-    # URL du site Astro : /cluster/<slug>/ → on retombe sur le mapping sidebar
-    if target.startswith("/cluster/"):
-        return sidebar_link_to_file(target.removeprefix("/cluster"), files)
+    # URL du site Astro : /nestor/<slug>/ → on retombe sur le mapping sidebar
+    if target.startswith("/nestor/"):
+        return sidebar_link_to_file(target.removeprefix("/nestor"), files)
     base = (
         target[1:]
         if target.startswith("/")
