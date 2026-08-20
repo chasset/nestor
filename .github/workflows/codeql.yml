@@ -26,6 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       security-events: write # uploader le SARIF sur l'onglet Security
+      contents: read # checkout (le bloc permissions du job remplace read-all)
     strategy:
       fail-fast: false
       matrix:
