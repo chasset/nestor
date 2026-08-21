@@ -126,6 +126,15 @@ Le terrain détermine le **provisioner** (attribut, pas axe —
 | `cloud`     | IaaS — **OpenTofu** ([ADR 0032](../decisions/0032-opentofu-provisioning-cloud.md)) | OpenTofu    | cible (**arm64**, `multi-node-3` ; 3 VMs Free Tier) |
 | `baremetal` | serveurs physiques — manuel / PXE                                                  | manuel/PXE  | cible **prod** (x86, `multi-node-4`)                |
 
+> **`edge-public` : seconde cible cloud, en x86**
+> ([ADR 0099](../decisions/0099-axes-du-modele-topologie.md)).
+> [`topologies/edge-public.example.yaml`](../../topologies/edge-public.example.yaml)
+> déclare un VPS cloud mono-nœud (AMD) + exposition `gateway` + hardening —
+> topo-vitrine de l'exposition internet. Le VPS préexiste (loué via panel) : pas
+> de provisioning OpenTofu (stub ADR 0032/0108), `nestor install` converge
+> directement. Étend le terrain cloud au-delà du cadrage ARM initial (ADR 0031)
+> ; cible déclarée, non encore buildée.
+>
 > **Provisioning local = Lima uniquement.** Vagrant/VirtualBox **dépréciés**
 > (conservés pour l'historique des Runs, plus maintenus), kind **abandonné**
 > (figeait k8s en 1.31,
@@ -344,9 +353,14 @@ terrain `local`, provisioner **Lima** (seul banc local,
 
 - **Matériel** : x86_64 (tout l'existant est arm64).
 - **Topologie** : HA réelle (multi-CP, `ha-3cp`), multi-sites (`multisite`).
-- **Terrain** : bare-metal (serveurs lames), cloud — terrain **cloud ARM** cadré
-  pour combler `ha-3cp`/`multisite`
-  ([ADR 0031](../decisions/0031-terrain-cloud-arm.md)).
+- **Terrain** : bare-metal (serveurs lames), cloud — terrain **cloud** cadré en
+  ARM ([ADR 0031](../decisions/0031-terrain-cloud-arm.md), `multi-node-3`) **et
+  en x86** (`edge-public`, VPS mono-nœud + `gateway`,
+  [ADR 0099](../decisions/0099-axes-du-modele-topologie.md)). Aucun des deux
+  n'est encore buildé : `edge-public` est une **cible déclarée** (topo-vitrine
+  d'exposition internet — le VPS préexiste, pas de provisioning OpenTofu), le
+  cloud ARM reste à provisionner
+  ([ADR 0032](../decisions/0032-opentofu-provisioning-cloud.md)).
 
 > Tout build à ce jour = **arm64 / local / mono-CP-3-nœuds**. C'est le seul coin
 > de la matrice couvert.

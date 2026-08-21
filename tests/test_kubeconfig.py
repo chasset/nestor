@@ -40,6 +40,30 @@ class RewriteServer(unittest.TestCase):
         out = yaml.safe_load(rewrite_kubeconfig(_ADMIN_CONF, server="https://127.0.0.1:6443"))
         self.assertEqual(out["clusters"][0]["cluster"]["server"], "https://127.0.0.1:6443")
 
+    def test_server_none_keeps_original(self):
+        # Prod (ADR 0115) : l'admin.conf porte déjà https://<ip-cp>:6443 (advertiseAddress
+        # kubeadm = IP du nœud, joignable depuis le poste) → server=None GARDE l'original,
+        # pas de réécriture (contrairement au banc dont l'IP interne Lima est injoignable).
+        out = yaml.safe_load(rewrite_kubeconfig(_ADMIN_CONF, server=None))
+        self.assertEqual(out["clusters"][0]["cluster"]["server"], "https://cluster-api:6443")
+
+    def test_server_default_none_keeps_original(self):
+        # défaut `server=None` (appel sans l'arg) → aussi garde l'original.
+        out = yaml.safe_load(rewrite_kubeconfig(_ADMIN_CONF))
+        self.assertEqual(out["clusters"][0]["cluster"]["server"], "https://cluster-api:6443")
+
+    def test_server_none_with_context_name_still_renames(self):
+        # server=None (garde endpoint) + context_name (rename) sont ORTHOGONAUX :
+        # on peut garder l'endpoint prod tout en estampillant le contexte stack_id.
+        out = yaml.safe_load(
+            rewrite_kubeconfig(_ADMIN_CONF, server=None, context_name="edge-public")
+        )
+        self.assertEqual(
+            out["clusters"][0]["cluster"]["server"], "https://cluster-api:6443"
+        )  # endpoint inchangé
+        self.assertEqual(out["clusters"][0]["name"], "edge-public")  # rename appliqué
+        self.assertEqual(out["current-context"], "edge-public")
+
     def test_ca_data_is_preserved(self):
         # on ne touche QUE l'endpoint : le CA et les certs client restent intacts.
         out = yaml.safe_load(rewrite_kubeconfig(_ADMIN_CONF, server="https://10.0.0.11:6443"))
