@@ -1,0 +1,119 @@
+# code: language=yaml
+#
+# topologies/edge-public.example.yaml — modèle VERSIONNÉ d'une instance CLOUD mono-nœud
+# exposée à internet (terrain `cloud`, exposition `gateway`). Réalise la topo-vitrine
+# `edge-public` référencée par ADR 0099 (« la capacité d'exposition internet ») — le fichier
+# pointé par l'ADR n'avait pas été créé ; ce `.example` le matérialise, aligné sur le NOM
+# de topologie `edge-public` (table ADR 0099). Valeurs génériques (ADR 0023) : le VPS réel
+# (fournisseur, IP publique, hostname, clé SSH) vit dans le `edge-public.yaml` gitignoré ;
+# ce `.example` est versionné. Le `topology.yaml` d'activation + la surcharge locale sont
+# gitignorés (ADR 0102).
+#
+# CAS D'USAGE : nœud edge léger et public — socle k8s+Cilium + metrics-server seulement,
+# derrière la bordure L7 Cilium (Gateway + cert-manager, TLS de bordure, SNI/hostname).
+# Pensé pour un VPS à IP publique routable, mono-nœud hyperconvergé (control+worker).
+#
+# ⚠️ x86 en terrain cloud = POINT NOUVEAU du catalogue. ADR 0031/0040 cadraient le terrain
+# cloud comme ARM (Oracle Ampere Free Tier, `multi-node-3`) ; ce fichier étend le cloud à
+# x86 (VPS AMD d'un fournisseur IaaS grand public). Conséquence : le « trou x86 » (ADR 0040 :
+# x86 testé jusqu'ici sur baremetal SEUL) gagne un second terrain. Le chemin d'install
+# reste strictement identique arm64/x86 (images d'index multi-arch, ADR 0006 ; `ansible_facts
+# .architecture` dérive l'arche, jamais codée en dur) — aucune variante de code ; seul le
+# banc d'itération (terrain `local`) reste arm64.
+#
+# DOCTRINE de ce fichier : n'y figurent QUE les champs FONCTIONNELS — ceux qu'un accesseur
+# nestor LIT réellement et qui changent le déploiement. Les champs purement descriptifs
+# (catalog.arch/topology/status) sont OMIS : les déclarer donnerait l'illusion d'un effet
+# inexistant. L'arche (x86) est portée par la présente prose + la matrice
+# (docs/architecture/matrice-catalogue.md), pas par un champ lu (à parité avec `dirqual`,
+# autre topo x86 qui n'invente pas `catalog.arch`). `stack_id` = nom de fichier (`edge-public`).
+#
+# `status` implicite : cible tant qu'aucun run réel ne l'a montée (honnêteté ADR 0052).
+
+# ─── catalog : seuls les champs LUS. `terrain: cloud` = VM IaaS (classe matérielle ADR 0039/
+# 0040/0108). Le VPS préexiste (loué via le panel du fournisseur, SSH-ready) → pas de phase
+# `up` (provisioning) : `nestor install` converge directement sur le nœud existant. Le bras
+# IaC cloud (OpenTofu, ADR 0032) reste non câblé — `nestor provision` erre ici à juste titre
+# (stub ADR 0108 §4) ; on l'appelle jamais, le substrat existe déjà. `profile` omis : `layers`
+# (ci-dessous) est posé et PRIME (ADR 0069).
+catalog:
+  terrain: cloud # local | cloud | baremetal (défaut fail-safe : baremetal).
+
+# ─── layers : edge LÉGER = socle (k8s+Cilium, phase `bootstrap`, toujours installée) PLUS
+# `metrics-server` (`kubectl top`, ADR 0068 — le plus petit palier d'observabilité, SANS
+# dépendance stockage : placé AVANT `store`). On EXCLUT volontairement monitoring/store/
+# dataops/gitops : un edge public mono-nœud n'en a pas besoin et la RAM d'un petit VPS ne
+# le porte pas. `resolve_layers` ordonne `metrics-server` après le socle.
+layers:
+  - metrics-server
+  - monitoring
+  - gitops
+  - gitops-seed
+  - dataops
+  - mlflow
+  - portal
+
+# ─── nodes : mono-nœud hyperconvergé (control+worker, ADR 0007). Pas de HA (SPOF du plan
+# de contrôle assumé en edge, ADR 0002). `name` = alias d'inventaire GÉNÉRIQUE ; le VRAI
+# endpoint SSH (IP publique du VPS) est porté par `ansible_host` dans le `edge-public.yaml`
+# gitignoré (credentials réels, ADR 0023) — pas dans ce modèle versionné. Sans `ansible_host`
+# déclaré ici, nestor ne peut PAS joindre le VPS : l'opérateur crée la surcharge locale.
+nodes:
+  - name: atlas
+    roles: [control, worker]
+    # ansible_host: <ip-publique-réelle>   # renseigné dans edge-public.yaml (gitignoré).
+
+# ─── exposition : bordure L7 Cilium en hostNetwork (Envoy bind 80/443 sur l'IP du nœud,
+# SNI/TLS de bordure via cert-manager, ADR 0071/0092). `gateway` est l'ANCIEN monde, DÉCLARÉ
+# explicitement ici (legacy conservé, ADR 0092) : c'est le mode de l'exposition internet
+# propre (hostname + TLS), à l'opposé du `nodeport` L4 canonique. Le mécanisme effectif est
+# piloté à l'installation (bootstrap/cni.sh) ; seul `mode` est lu (plage/interface =placeholders
+# non lus, omis). Exige un hostname — porté par `portal.access_host` ci-dessous.
+exposition:
+  mode: nodeport # nodeport (défaut canonique L4) | gateway (L7 legacy) | none.
+
+# ─── storage : mono-nœud ⇒ local-path (pas de Ceph : ×1 OSD non résilient, ADR 0040). Pas de
+# disques bruts, pas de paramètres Ceph. Le datapath applicatif (s'il enrichissait plus tard)
+# repartirait sur local-path — un seul nœud ne justifie jamais Rook-Ceph.
+storage:
+  backend: local-path # ceph | local-path.
+
+# ─── hardening : axe orthogonal (ADR 0045 §3). VPS EXPOSÉ À INTERNET → durci. `enabled: true`
+# insère la phase `hardening` APRÈS le socle (rôle `bootstrap/security/secure.yml`, tags
+# audit,detection — sshd, auditd, fail2ban…). Phase idempotente, rejouable, déjà validée sur
+# banc (bench/lima/RESULTS.md scénario 13, PASS). Cœur du propos de cette topo : démontrer
+# un edge public durci, pas une VM ouverte.
+hardening:
+  enabled: false # true → insère la phase de durcissement après le socle.
+
+# ─── persistence : CURSEUR NON POSÉ ici. `persistence.mode` (ADR 0109) régit les DONNÉES
+# APPLICATIVES de six briques (sc, cnpg, loki, prometheus, datalake, volume-snapshots) —
+# AUCUNE présente au profil edge léger (base + metrics-server n'a aucun volume PVC ni bucket).
+# Le curseur serait une étiquette sans effet → omis par doctrine (absent → défaut `full`,
+# fail-safe, lui-même moot tant qu'aucune brique persistante n'est ajoutée). Le déclarer si
+# l'on enrichit les layers (ex. `bounded` sur un VPS à disque limité).
+
+# ─── resources : NON posé en terrain cloud (ADR 0097 §3). Le bloc `resources:` (cpus/memory/
+# disk) dimensionne les VM LIMA — ACTIF terrain `local` uniquement. En cloud, le VPS préexiste
+# avec son propre sizing (fournisseur) ; nestor ne le provisionne pas → champ ignoré, omis
+# (à parité avec `dirqual`, autre topo non-`local` qui n'invente pas de `resources`).
+
+# ─── gitea / atlas : NON posés. Le JOUET du socle (seed Gitea) et l'observabilité de drift
+# (code-locations atlas) ne vivent qu'avec la couche `gitops`/`dataops` — absente ici (edge
+# léger, aucune forge in-cluster). Les déclarer donnerait l'illusion d'un seed déployé.
+
+# ─── portal : seul `access_host` est lu (host des NodePort/Gateway côté navigateur). En edge
+# public, c'est le HOSTNAME PUBLIC du VPS (résolu par le SNI de bordure, pas l'IP interne
+# injoignable). Valeur d'exemple générique (ADR 0023/0048) : le hostname réel (DNS A → IP
+# publique du VPS) vit dans le `edge-public.yaml` gitignoré.
+portal:
+  access_host: portal.k8s.example-org.net # hostname public générique (surchargé en local).
+
+
+# ─── kubeconfig : NON posé (ADR 0102 volet B + ADR 0108 §3). `nestor stack select edge-public`
+# RAPATRIE l'admin.conf depuis le nœud de contrôle (par SSH, transport du terrain cloud) et
+# l'écrit à `.kubeconfigs/edge-public.config` (contexte estampillé `edge-public`, endpoint
+# réécrit vers la valeur joignable). Le kubeconfig cesse d'être posé à la main : c'est un
+# artefact produit par l'activation, source d'identité pour la garde d'isolation (ADR 0108).
+# Laisser absent → résolution par défaut ; `export KUBECONFIG=…` surcharge toujours (ADR 0053).
+# kubeconfig: ~/.kube/edge-public.config

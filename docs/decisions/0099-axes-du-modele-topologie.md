@@ -93,7 +93,7 @@ Conséquences directes :
 
 - **La « capacité à être connecté à internet » est déjà un axe** :
   `terrain: cloud` + `exposition: gateway`
-  (`topologies/gateway-public.example.yaml`). C'est **la** topologie-vitrine de
+  (`topologies/edge-public.example.yaml`). C'est **la** topologie-vitrine de
   l'exposition publique — pas besoin d'un nouvel axe.
 - **Le catalogue s'enrichit par AJOUT de topologies, pas par mutation du
   modèle** : plusieurs bare-metal (sites), un cloud Terraform, un banc

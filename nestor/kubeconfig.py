@@ -21,15 +21,18 @@ import yaml
 def rewrite_kubeconfig(
     text: str,
     *,
-    server: str,
+    server: str | None = None,
     context_name: str | None = None,
     tls_server_name: str | None = None,
 ) -> str:
     """Réécrit un kubeconfig rapatrié (PUR, ADR 0081). Rend le YAML transformé.
 
-    - `server` : nouvel endpoint de TOUS les clusters (ex. `https://127.0.0.1:6443` pour le
-      port-forward Lima, ou `https://<ip-cp>:6443` en prod). C'est la réécriture INDISPENSABLE
-      (l'endpoint interne n'est pas joignable du poste).
+    - `server` : nouvel endpoint de TOUS les clusters. `None` (défaut) → on GARDE
+      l'endpoint original de l'admin.conf (cas **prod** : kubeadm y écrit
+      `https://<ip-cp>:6443` = advertiseAddress du nœud, **joignable** depuis le
+      poste — pas de réécriture nécessaire, contrairement au banc dont l'IP
+      interne Lima ne l'est pas). Une valeur non-None réécrit (banc :
+      `https://127.0.0.1:6443` pour le port-forward Lima).
     - `context_name` : si fourni, renomme le cluster/user/contexte sur des noms UNIQUES dérivés
       (kubeadm pose toujours `kubernetes`/`kubernetes-admin` → deux kubeconfigs fusionnés
       s'écraseraient ; cf. `fetch_kubeconfig_node`). None → noms inchangés.
@@ -46,7 +49,8 @@ def rewrite_kubeconfig(
 
     for entry in cfg.get("clusters", []):
         cluster = entry.setdefault("cluster", {})
-        cluster["server"] = server
+        if server is not None:
+            cluster["server"] = server
         if tls_server_name:
             cluster["tls-server-name"] = tls_server_name
 

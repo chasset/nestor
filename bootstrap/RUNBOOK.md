@@ -264,6 +264,43 @@ ssh-keygen -t ed25519               # si absent
 bash bootstrap/first-access.sh      # cibles par défaut : cp1 node1 node2 node3
 ```
 
+### Cas d'un VPS livré en root seul (ex. Contabo)
+
+`first-access.sh` atterrit sur l'utilisateur **`debian`** (y dépose la clé, y
+pose le sudo NOPASSWD, durcit sshd en `AllowUsers debian`/`PermitRootLogin no`).
+Si le VPS est livré **en root** sans clé sur `debian` (ex. VPS IaaS grand public
+avec `debian` existant mais accès root par mot de passe panel), lancer au
+préalable
+[`first-access-root.sh`](https://github.com/chasset/nestor/blob/main/bootstrap/first-access-root.sh)
+:
+
+```bash
+bash bootstrap/first-access-root.sh 203.0.113.42   # IP publique du VPS
+```
+
+Connecté en root (mot de passe panel, `ssh-copy-id` la 1re fois), ce préalable :
+
+- dépose ta clé sur `debian` (créé si absent — **no-op si déjà là**, ex.
+  Contabo) ;
+- pose le sudo NOPASSWD + `debian ∈ groupe sudo` ;
+- **vérifie l'accès `debian`** (clé + `sudo -n`) ;
+- **locke le mot de passe root** (`usermod -L root`, obligatoire — JAMAIS
+  `userdel`, UID 0 invariant système).
+
+Il ne touche **pas** à sshd (source unique = `first-access.sh`). Le VPS devient
+**passwordless** (root locké + debian key-only) ; repli en cas de perte de clé =
+réinstall via le panel du fournisseur.
+
+> **Garde-fou anti-lockout** : root n'est locké qu'**après** preuve que `debian`
+> (clé + `sudo -n`) ouvre. Un échec de preuve **abandonne sans locker** — on ne
+> ferme pas la seule porte de sortie sans certitude que l'autre ouvre.
+
+Enchaîner ensuite (le durcissement sshd, non-interactif désormais) :
+
+```bash
+bash bootstrap/first-access.sh 203.0.113.42
+```
+
 Variantes :
 
 ```bash

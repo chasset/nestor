@@ -1283,6 +1283,27 @@ runs:
         self.assertEqual(code, 2)
         self.assertIn("usage", err)
 
+    def test_bootstrap_routes_to_path_engine(self):
+        # ADR 0115 : `next` monte le socle `bootstrap` via le MOTEUR `_run_path_engine`
+        # (callback `bootstrap()`, branché `terrain` : banc limactl / prod SSH), plus
+        # d'erreur « non lançable via next ». Vérifie le ROUTING (la branche terrain du
+        # callback bootstrap est couverte par la non-régression banc + la validation VPS).
+        topo = topology_from_dict(
+            {
+                "catalog": {"terrain": "cloud"},
+                "nodes": [{"name": "node1", "roles": ["control", "worker"]}],
+                "storage": {"backend": "local-path"},
+            }
+        )
+        seq = ["bootstrap", "metrics-server"]
+        with mock.patch.object(cli, "_run_path_engine", return_value=0) as eng:
+            rc = cli._monter_phase(topo, "bootstrap", {}, "edge-public", target="layers", seq=seq)
+        self.assertEqual(rc, 0)
+        eng.assert_called_once()
+        # a_appliquer restreint à la SEULE phase bootstrap (montage unitaire via next).
+        self.assertEqual(eng.call_args.kwargs.get("a_appliquer"), {"bootstrap"})
+        self.assertIs(eng.call_args.args[0], topo)  # la topo visée, pas une autre
+
     def test_prod_does_not_repropose_installed_layers(self):
         # ADR 0090 (régression du 2026-06-22) : sur une PROD saine (nœuds Ready + socle
         # et couches observés), `next` NE DOIT PAS re-proposer Kubernetes (la 1re couche).
